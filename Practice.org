@@ -1,0 +1,275 @@
+#+SETUPFILE: https://fniessen.github.io/org-html-themes/setup/theme-readtheorg.setup
+
+#+TITLE:CI/CD pipeline on container platform
+
+  :END:
+  
+* Deploy kubernetes with kubeadm
+   :PROPERTIES:
+   :CUSTOM_ID: deploy-kubernetes-with-kubeadm
+   :END:
+[[https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/][Kubeadm
+official docs]]
+
+** Requirements
+    :PROPERTIES:
+    :CUSTOM_ID: requirements
+    :END:
+
+/All the commands regarding the requirements must be done on each
+nodes/. To do it i used tmux with the =:setw synchronize-panes on=
+option.
+
+#+CAPTION: tmux sync pane
+[[https://github.com/kelseyhightower/kubernetes-the-hard-way/blob/master/docs/images/tmux-screenshot.png]]
+
+*** Verify the MAC address and product_uuid are unique for every node
+
+- =ip link=
+
+   - =sudo cat /sys/class/dmi/id/product_uuid=
+
+*** Disable swap
+
+   - =swapoff -a=
+
+*** Disable firewall
+
+
+*** Every node must have a different hostname and need to open ports
+
+*** Install kubectl, kubelet and kubeadm
+
+   - Add kubernetes repository
+
+   #+BEGIN_SRC sh
+     cat <<EOF > /etc/yum.repos.d/kubernetes.repo
+     [kubernetes]
+     name=Kubernetes
+     baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+     enabled=1
+     gpgcheck=1
+     repo_gpgcheck=1
+     gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+     EOF
+   #+END_SRC
+
+   - Set SELinux in permissive mode (effectively disabling it)
+
+   #+BEGIN_SRC sh
+     setenforce 0
+     sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
+
+     yum install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
+
+     systemctl enable --now kubelet
+   #+END_SRC
+
+   - Make sure that the =br_netfilter= module is loaded before this step
+     with=lsmod | grep br_netfilter=. To load it explicitly:
+     =modprobe br_netfilter=
+
+*** Install docker CE
+
+   - /Install required packages/
+
+     #+BEGIN_SRC sh
+       yum install yum-utils device-mapper-persistent-data lvm2
+     #+END_SRC
+
+   - /Add Docker repository/
+
+     #+BEGIN_SRC sh
+       yum-config-manager \
+       --add-repo \
+       https://download.docker.com/linux/centos/docker-ce.repo
+     #+END_SRC
+
+   - /Install Docker CE/
+
+     #+BEGIN_SRC sh
+       yum update && yum install docker-ce-18.06.2.ce
+     #+END_SRC
+
+   - /Create /etc/docker directory/ =mkdir /etc/docker=
+
+   - /Setup daemon/ ```bash cat > /etc/docker/daemon.json <<EOF {
+     "exec-opts": ["native.cgroupdriver=systemd"], "log-driver":
+     "json-file", "log-opts": { "max-size": "100m" }, "storage-driver":
+     "overlay2", "storage-opts": [ "overlay2.override_kernel_check=true"
+     ] } EOF
+
+     mkdir -p /etc/systemd/system/docker.service.d ```
+
+   - /Restart Docker/
+     =bash   systemctl daemon-reload   systemctl restart docker=
+
+*** Network plugin: flannel
+
+   - Set =/proc/sys/net/bridge/bridge-nf-call-iptables= to =1= by
+     running = sysctl net.bridge.bridge-nf-call-iptables=1= to pass
+     bridged IPv4 traffic to iptables' chains
+
+** Initialize the cluster
+    :PROPERTIES:
+    :CUSTOM_ID: initialize-the-cluster
+    :END:
+
+*** Initialize the cluster
+With =kubeadm init= adding =--apiserver-advertise-address= with the IP if there are multiple
+   interface and =--pod-network-cidr=10.244.0.0/16= to make flannel
+   work: kubeadm init --apiserver-advertise-address --pod-network-cidr=10.244.0.0/16
+
+*** Copy the config in the home directory to be used by kubectl, as
+   normal user
+
+   #+BEGIN_SRC sh
+     mkdir -p $HOME/.kube
+     sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+     sudo chown $(id -u):$(id -g) $HOME/.kube/config
+   #+END_SRC
+
+*** Run flannel pods
+   =shell  kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/2140ac876ef134e0ed5af15c65e414cf26827915/Documentation/kube-flannel.yml=
+
+As the output of kubeadm say:
+
+#+BEGIN_SRC sh
+  Then you can join any number of worker nodes by running the following on each as root:
+
+  kubeadm join 192.168.60.101:6443 --token kbrccr.gkqno5vco54n1ilc \
+      --discovery-token-ca-cert-hash sha256:2d16a996778f4a003d23725ec64bf6070fce61f49e96bc74123ccf98bcd6a08
+#+END_SRC
+
+To use =kubectl= from other nodes than the master copy
+=/etc/kubernetes/admin.conf= on that node and choose a way to use it: -
+=kubectl --kubeconfig ./admin.conf get nodes= -
+=export KUBECONFIG=/etc/kubernetes/admin.conf= - copy it insiede
+=$HOME/.kube/config= - from vagrant vm
+=vagrant scp master1:/home/vagrant/.kube/config /home/giogio/.kube/vagrant-conf=
+*** See [[Pod not found]]
+* Install GitLab container
+   :PROPERTIES:
+   :CUSTOM_ID: install-gitlab-container
+   :END:
+
+As suggested in the [[https://docs.gitlab.com/charts/][official GitLab
+documentation]] the best way to deploy GitLab on kuberntes is with an
+Helm Chart.
+
+** Install helm on client machine:
+
+   - Download your [[https://github.com/helm/helm/releases][desired
+     version]]
+   - Unpack it (=tar -zxvf helm-v3.0.0-linux-amd64.tgz=)
+   - Find the =helm= binary in the unpacked directory, and move it to
+     its desired destination (=mv linux-amd64/helm /usr/local/bin/helm=)
+
+** Install Tiller on the cluster:
+
+#+BEGIN_SRC sh
+  kubectl -n kube-system create serviceaccount tiller
+
+  kubectl create clusterrolebinding tiller \
+    --clusterrole=cluster-admin \
+    --serviceaccount=kube-system:tiller
+
+  helm init --service-account tiller
+#+END_SRC
+See [[tiller][Troubleshooting/tiller]] for problems. 
+** Install gitlab
+See [[apiVersion error]] 
+and [[Use the edited chart]] 
+
+Then see [[The page is not reacheble]] to edit the ingress service 
+* Troubleshooting
+   :PROPERTIES:
+   :CUSTOM_ID: troubleshooting-1
+   :END:
+** Nodes not ready
+=k describe nodes= =journalctl -u kubelet= on each node And in case of
+errors check if flannel pods are presents, or: =swapoff -a=
+=kubeadm reset=
+** <<Tiller>> on cluster does not respond
+
+(=Error: forwarding ports: error upgrading connection: unable to upgrade connection: pod does not exist=):
+   install tiller locally =https://rimusz.net/tillerless-helm=
+
+** <<apiVersion error>>
+~Error: validation failed: unable to recognize "": no matches for kind "Deployment" in version "extensions/v1beta1"~
+Have to edit the apiVersion, so:
+   - ~helm fetch gitlab/gitlab~
+   - change each =extensions/v1beta1= in deployment resources to
+     =apps/v1=
+
+** <<Use the edited chart>>: 
+#+begin_src bash
+helm upgrade --install gitlab ./gitlab
+   --timeout 600 --set global.hosts.domain=local --set
+   global.hosts.externalIP=192.168.60.202 --set global.edition=ce --set
+   certmanager-issuer.email=me@example.com=
+#+end_src
+
+**  1<<The page is not reacheble>>
+=k get svc= we will see that the =external ip= of the ingress controller is in pending. 
+We have to edit the service: =k edit svc gitlab-nginx-ingress-controller= and
+add the same IP we used as =externalIP= before:
+#+BEGIN_SRC sh
+  externalIPs:
+    - 192.168.60.102
+#+END_SRC
+
+** DONE <<Pod not found>>
+CLOSED: [2019-12-06 ven 14:05]
+This is a vagrant related problem:  [[https://github.com/kubernetes/kubernetes/issues/60835][github issue]].
+SCHEDULED: <2019-12-06 ven 09:00>
+*** Tentativi
+:LOGBOOK:
+CLOCK: [2019-12-06 ven 08:59]--[2019-12-06 ven 11:23] =>  2:24
+:END:
+- Paste ~Environment="KUBELET_EXTRA_ARGS=--node-ip=VAGRANT_VM_EXTERNAL_IP_HERE"~
+  inside ~/etc/systemd/system/kubelet.service.d/10-kubeadm.conf~ and restart the kubelet give an error (systemctl status kubelet)
+*** Solution 
+Add ~--node-ip~ flag in ~/var/lib/kubelet/kubeadm-flags.env~ gives no error, but the main error persist.
+
+** Destroy all vagrant machines:
+
+#+BEGIN_SRC sh
+  for i in `vagrant global-status | grep virtualbox | awk '{ print $1 }'` ; do vagrant destroy $i ; done
+#+END_SRC
+
+** TODO Nginx 503
+:LOGBOOK:
+CLOCK: [2019-12-06 ven 14:05]
+:END:
+*** See [[Pod communication]]
+** Pod communication
+~Not route to host~ when trying to ping/curl a pod on the same namespace
+*** Test: pod on different nodes
+~kubectl label nodes worker2 w=2~ and same for worker1
+~kubectl run nginx --restart=Never --image=nginx ==dry-run -o yaml > pod.yml~
+ping from one to another doesn't work. 
+*** Tentativi
+- Disable firewall
+- Check ~ip route~
+- enable ipv4 forwarding
+- 
+
+* Minikube
+ minikube start --cpus 3 --memory 8192
+* Helm install command
+helm repo add gitlab https://charts.gitlab.io/   
+helm repo update                                                                           
+helm upgrade --install gitlab ./gitlab \
+  --timeout 600 \                       
+  -f minikube-values.yml --set global.hosts.domain=$(minikube ip).nip.io \ 
+  --set global.hosts.externalIP=$(minikube ip)
+  
+
+helm repo add gitlab https://charts.gitlab.io/
+helm repo update
+helm upgrade --install gitlab ./gitlab \
+  --timeout 600 \
+  -f https://gitlab.com/gitlab-org/charts/gitlab/raw/master/examples/values-minikube-minimum.yaml
+  --set global.hosts.domain=$(minikube ip).nip.io \
+  --set global.hosts.externalIP=$(minikube ip)

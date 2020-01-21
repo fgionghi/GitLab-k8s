@@ -1,0 +1,293 @@
+% Created 2019-12-28 sab 15:46
+% Intended LaTeX compiler: pdflatex
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{grffile}
+\usepackage{longtable}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{textcomp}
+\usepackage{amssymb}
+\usepackage{capt-of}
+\usepackage{hyperref}
+\author{Francesco Gionghi}
+\date{\today}
+\title{CI/CD pipeline on container platform}
+\hypersetup{
+ pdfauthor={Francesco Gionghi},
+ pdftitle={CI/CD pipeline on container platform},
+ pdfkeywords={},
+ pdfsubject={},
+ pdfcreator={Emacs 26.3 (Org mode 9.2.6)}, 
+ pdflang={English}}
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+
+\section{Index}
+\label{sec:org7ccbb41}
+\subsection{Introduction (4 pagine)}
+\label{sec:org0c54e62}
+\subsubsection{Introduzione DevOps}
+\label{sec:org5909fdd}
+\subsubsection{Veloce introduzione al concetto di CI/CD}
+\label{sec:orga3e3b1a}
+\subsubsection{Veloce introduzione all'orchestrazione container}
+\label{sec:org06c1c65}
+\subsubsection{Classica immagine dei vari tipi di virtualizzazione (vm vs. container)}
+\label{sec:orga178fb6}
+\begin{enumerate}
+\item Modalità di documentazione e tracciamento del codice (infrastructure as code), link al repo
+\label{sec:org1c0320b}
+\end{enumerate}
+\subsection{Architecture}
+\label{sec:org2da2f82}
+\begin{itemize}
+\item Schema fisico (due VM, la tua macchina di controllo, con dentro i container di k8s, i container di gitlab e i contaioner della tua applicazioner, networking, software defined networking)
+\item Schema logico della CI/CD con i vari componenti
+\end{itemize}
+\subsection{Installation}
+\label{sec:org4973ce8}
+\begin{itemize}
+\item Kubernetes  (come hai fatto l'installazione kubernetes. kubeadm. Parla anche di minikube dicendo quali sono le sue limitazionie)
+\item Docker registry
+\item Gitlab (descrivi come hai installato gitlab, metti screenshot dell'interfccia)
+\item CI/CD (fai vedere come hai creato la pipeline. Mettere un listato degli yaml più rilevante, spiegandoli)
+\end{itemize}
+\subsection{Concluding remarks}
+\label{sec:org282b29d}
+
+\section{Thesis}
+\label{sec:orge920394}
+\subsubsection{DevOps Introduction}
+\label{sec:org459895f}
+\begin{enumerate}
+\item Definition
+\label{sec:orga8641a5}
+DevOps is a set of practices that combines software development (Dev) and
+information-technology operations (Ops) which aims to shorten the systems
+development life cycle and provide continuous delivery with high software
+quality.
+\begin{enumerate}
+\item Understand the sentence:
+\label{sec:orgb38465c}
+\begin{itemize}
+\item \textbf{Software development} is the process of conceiving, specifying, designing, programming, documenting, testing, and bug fixing involved in creating and maintaining applications, frameworks, or other software components. Software development is a process of writing and maintaining the source code, but in a broader sense, it includes all that is involved between the conception of the desired software through to the final manifestation of the software, sometimes in a planned and structured process.
+\item \textbf{IT operation} tasks fall into three areas: \texttt{Computer Operations \& Help Desk; Network Infrastructure; and Server and Device Management}.  
+n details:
+   Network Infrastructure
+       Infrastructure: router, hubs, firewalls, DNS servers, file servers, load balancing, etc.
+       Telecommunications: Managing and configuring all internal and external communication lines so that customers, employees, vendors, and other interested parties can access applications.
+       Port management: Opening and closing ports on the firewall to allow the network to communicate with outside servers.
+       Security: Insuring the network is secured only to authorized users and to prevent/counter attacks from outside sources
+       Remote access to the network for users: Setting up access from outside the network using techniques such as VPN, two-factor authentication, etc.
+       Internal telephone system management: Managing the company phone system
+       Monitoring network health and alerting network personnel when an issue occurs with network resources (including storage, services such as email or file servers, application servers, communications, etc.)
+   Server \& Device Management
+       Server management for applications and infrastructure: Set up configuration, maintenance, upgrades, patching, repair, etc.
+       Network and individual storage management to insure that all applications have access to the storage requirements they need for disk, memory, backup, and archiving
+       Email and file server configuration and folder setup and authorization: This is classified as a separate area because outside of order taking \& fulfillment and customer service, email and file server management are two of the most important IT functions in a company
+       PC provisioning: Acquisition, configuration, management, break/fix, applications installation \& configuration, upgrades of company approved desktop and laptop devices
+       Mobile device and cell phone telecommunications management: Provisioning, assigning, managing, cell phone contracts, and phone numbers. Provisioning for mobile device approved by the organization. Providing for BYOD access to the network.
+       Desktop, laptop, and mobile device software application licensing and management
+   Computer Operations \& Help Desk
+       Data Center management: Management of the physical locations where the equipment resides, including floor space, electricity, cooling, battery backups, etc.
+       Help Desk management: Level 1 support for IT Operations with responsibility for escalating issues to and following up on issues with Level 2 and Level 3 support.
+       User provisioning: Creation and authorization of user profiles on all systems. Also includes changes to user profiles and the procedure for deleting old user profiles
+       Auditing: Proving to outside entities (corporate auditors, the government, regulatory agencies, business partners, etc) that your network is correctly configured and secured
+       Communications with network users when a major incident occurs impacting network services
+       High availability and disaster recovery: Providing capabilities to insure your application servers and network can function in the event of a disaster
+       Backups management: Instituting and running daily, weekly, monthly, yearly backups to insure data can be recovered, if needed
+       Computer operations: Printing and distributing reports, invoices, checks, other outputs from a production systems, such as an IBM i
+       Maintain, manage, and add to the IT Infrastructure Library (ITIL) for the organization
+\end{itemize}
+\end{enumerate}
+
+\item Agile and Lean: how are they related with Devops?
+\label{sec:orgf7b927b}
+DevOps has strong affinities with Agile and Lean approaches. The old view of operations tended towards the “Dev” side being the “makers” and the “Ops” side being the “people that deal with the creation after its birth” – the realization of the harm that has been done in the industry of those two being treated as siloed concerns is the core driver behind DevOps. In this way, DevOps can be interpreted as an outgrowth of Agile – agile software development prescribes close collaboration of customers, product management, developers, and (sometimes) QA to fill in the gaps and rapidly iterate towards a better product – DevOps says “yes, but service delivery and how the app and systems interact are a fundamental part of the value proposition to the client as well, and so the product team needs to include those concerns as a top level item.” From this perspective, DevOps is simply extending Agile principles beyond the boundaries of “the code” to the entire delivered service.
+
+
+
+\item DevOps core concept
+\label{sec:org968fd3b}
+
+\begin{itemize}
+\item Infrastructure Automation – create your systems, OS configs, and app deployments as code.
+\item Continuous Delivery – build, test, deploy your apps in a fast and automated manner.
+\item Site Reliability Engineering – operate your systems; monitoring and orchestration, sure, but also designing for operability in the first place.
+\end{itemize}
+
+\textbf{Needs a summary definition of: core concept and tools\ldots{}}
+\end{enumerate}
+\subsubsection{CI/CD introduction}
+\label{sec:org47e86c0}
+[[\url{https://www.google.com/url?sa=i\&rct=j\&q=\&esrc=s\&source=images\&cd=\&cad=rja\&uact=8\&ved=2ahUKEwiVxd6JhtTmAhW3wAIHHXMsAQkQjRx6BAgBEAQ\&url=https://www.redhat.com/it/topics/devops/what-is-ci-cd\&psig=AOvVaw0n6SRY0fI7miu7b0qgNgy-\&ust=1577474826190727}]]
+\begin{enumerate}
+\item Continuous integration
+\label{sec:org4f0c392}
+
+Developers practicing continuous integration merge their changes back to the main branch as often as possible. The developer's changes are validated by creating a build and running automated tests against the build. By doing so, you avoid the integration hell that usually happens when people wait for release day to merge their changes into the release branch.
+
+Continuous integration puts a great emphasis on testing automation to check that
+the application is not broken whenever new commits are integrated into the main
+branch.    
+
+\item Continuous delivery
+\label{sec:org2636471}
+
+Continuous delivery is an extension of continuous integration to make sure that
+you can release new changes to your customers quickly in a sustainable way. This
+means that on top of having automated your testing, you also have automated your
+release process and you can deploy your application at any point of time by
+clicking on a button.
+
+In theory, with continuous delivery, you can decide to release daily, weekly,
+fortnightly, or whatever suits your business requirements. However, if you truly
+want to get the benefits of continuous delivery, you should deploy to production
+as early as possible to make sure that you release small batches that are easy
+to troubleshoot in case of a problem. 
+
+\item Continuous deployment
+\label{sec:org97b26f1}
+
+Continuous deployment goes one step further than continuous delivery. With this practice, every change that passes all stages of your production pipeline is released to your customers. There's no human intervention, and only a failed test will prevent a new change to be deployed to production.
+
+Continuous deployment is an excellent way to accelerate the feedback loop with your customers and take pressure off the team as there isn't a Release Day anymore. Developers can focus on building software, and they see their work go live minutes after they've finished working on it.
+
+\item Costs and benefits
+\label{sec:orgc61def8}
+
+Costs:
+\begin{itemize}
+\item Your team will need to write automated tests for each new feature, improvement or bug fix.
+\item You need a continuous integration server that can monitor the main repository and run the tests automatically for every new commits pushed.
+\item Developers need to merge their changes as often as possible, at least once a day.
+\end{itemize}
+
+Benefits:
+\begin{itemize}
+\item Less bugs get shipped to production as regressions are captured early by the automated tests.
+\item Building the release is easy as all integration issues have been solved early.
+\item Less context switching as developers are alerted as soon as they break the build and can work on fixing it before they move to another task.
+\item Testing costs are reduced drastically – your CI server can run hundreds of tests in the matter of seconds.
+\item Your QA team spend less time testing and can focus on significant improvements to the quality culture.
+\item The complexity of deploying software has been taken away. Your team doesn't have to spend days preparing for a release anymore.
+\item Releases are less risky and easier to fix in case of problem as you deploy small batches of changes.
+\item Customers see a continuous stream of improvements, and quality increases every day, instead of every month, quarter or year.
+\end{itemize}
+\end{enumerate}
+
+\subsubsection{Container orchestration}
+\label{sec:orgae75ad0}
+\begin{enumerate}
+\item Container
+\label{sec:org04e3958}
+There are a few new Linux kernel features, \textbf{namespaces} and \textbf{cgroups}, that let you isolate processes from each other. When you use those features, you call it \textbf{containers}.
+\item Understand the sentence
+\label{sec:orgf801bfd}
+\begin{enumerate}
+\item Namespaces
+\label{sec:orgbac6651}
+Linux processes form a single hierarchy, with all processes rooting at init. Usually privileged processes in this tree can trace or kill other processes.Linux namespace enables us to have many hierarchies of processes with their own “subtrees” such that processes in one subtree cant access or even know of those in another.
+
+There are different kinds of namespace:
+
+\begin{itemize}
+\item in a \textbf{pid} namespace you become PID 1 and then your children are other processes. All the other programs are gone
+\item in a \textbf{networking} namespace you can run programs on any port you want without it conflicting with what’s already running
+\item in a \textbf{mount} namespace you can mount and unmount filesystems without it affecting the host filesystem. So you can have a totally different set of devices mounted (usually less).
+\end{itemize}
+
+Similarly there are cgroup (for cgroup root directory), IPC, User (for users and group IDs) and UTS (for hostname) namespaces
+\begin{enumerate}
+\item Network namespace
+\label{sec:orge98e24c}
+Lets say we have new PID namespace. The process sitting in this new namespace be listening on port 80 for incoming requests.This means that all other processes, in the entire system., are prevented from listening on it. This is not very helpful isolation. This is where network namespaces come.
+
+Network namespaces helps inner processes to see different set of network interfaces-including lo interface! But this is half the story. When we have new network namespaces, we MUST setup virtual network interfaces that span many namespaces along with a routing process running in global namespace to handle and route traffic to correct namespace.
+\end{enumerate}
+
+\item Cgroups
+\label{sec:orgf7a3637}
+\end{enumerate}
+\end{enumerate}
+
+\section{Container}
+\label{sec:org595a863}
+\subsection{Index}
+\label{sec:orga36bf33}
+\begin{itemize}
+\item Small general intro naming kernel, namespace and cgroups
+\item defining low level those terms
+\end{itemize}
+\subsection{Links}
+\label{sec:orgd0979d0}
+\url{http://www.linfo.org}
+\url{https://www.redhat.com/en/blog/architecting-containers-part-1-why-understanding-user-space-vs-kernel-space-matters}
+\subsection{Small container definition}
+\label{sec:orgdecfb47}
+\url{http://container.training}
+\textbf{Container}: feel like a vm but is \textbf{not} (just idea at the beginning):
+\begin{itemize}
+\item can ssh into it (don't)
+\item \texttt{ps/top} see only each own processes or \texttt{ip/hostname}
+\end{itemize}
+BUT:
+\begin{itemize}
+\item use host kernel
+\item no need \texttt{ĩnit} as PID1
+\end{itemize}
+
+Containers for the kernel are just cgroups and namespaces.
+
+\subsection{{\bfseries\sffamily TODO} Definition: kernel-User space- kernel space}
+\label{sec:org6284774}
+To actually understand why container are possible, we need to go deeper in kernel mechanisms:
+\begin{itemize}
+\item It provides an API to application via system calls
+\item It is the only layer of abstraction
+\end{itemize}
+\begin{center}
+\includegraphics[width=.9\linewidth]{./images/user-space-vs-kernel-space-simple-user-space.png}
+\end{center}
+\textbf{\href{http://www.linfo.org/user\_space.html}{User space}}: 
+
+
+\textbf{\href{https://itnext.io/breaking-down-containers-part-0-system-architecture-37afe0e51770}{All together}}
+\begin{enumerate}
+\item Cgroups
+\label{sec:orgb82fce4}
+\textbf{Cgroups}: metering and limiting the resources used by processes. 
+Each subsystem has it's own hierarchy (tree) and each process belong to one node in each hierarchy. 
+\begin{verbatim}
+CPU      
+ |
+ +--batch 
+ |+----bar
+ |  
+ +--baz   
+\end{verbatim}
+\item {\bfseries\sffamily TODO} complete with details about memory page
+\label{sec:orgde87772}
+\begin{itemize}
+\item \footnote{page are something difficult}memory (min 7)
+\begin{itemize}
+\item keep track of every single memory page (4kb) used by groups (mmap mapping types):
+\begin{itemize}
+\item file:
+\end{itemize}
+\end{itemize}
+\item CPU
+\item block I/O
+\item network
+\item devices
+\end{itemize}
+\end{enumerate}
+\end{document}

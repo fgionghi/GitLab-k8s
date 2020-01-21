@@ -1,0 +1,646 @@
+
+# Table of Contents
+
+-   [Index](#orgfb78e1f)
+    -   [Introduction (4 pagine)](#org95c9107)
+        -   [Introduzione DevOps](#org3771b0d)
+        -   [Veloce introduzione al concetto di CI/CD](#orge02ff47)
+        -   [Veloce introduzione all'orchestrazione container](#org6ddeaaa)
+        -   [Classica immagine dei vari tipi di virtualizzazione (vm vs. container)](#orgdb3d1d5)
+    -   [Architecture](#org154bfa3)
+    -   [Installation](#org72ed53d)
+    -   [Concluding remarks](#org03eed8b)
+-   [Thesis](#org3676e90)
+    -   [DevOps Introduction](#org872808a)
+        -   [Definition](#orge4a5d39)
+        -   [Agile and Lean: how are they related with Devops?](#org0e2eba7)
+        -   [DevOps core concept](#org9296d34)
+    -   [CI/CD introduction](#org4ab61a2)
+        -   [Continuous integration](#org7a2f83c)
+        -   [Continuous delivery](#org4f42e9f)
+        -   [Continuous deployment](#org346234b)
+        -   [Costs and benefits](#org699aa69)
+    -   [Container orchestration](#org4109de7)
+        -   [Container](#org4ca2e95)
+        -   [Orchestration](#org66a0a19)
+    -   [How network work in kubernetes](#org0ae120a)
+        -   [Basics](#org298aecf)
+        -   [Networking model](#org0db6203)
+    -   [My Architecture](#orgd9b5bb7)
+        -   [Diagram arichitecture](#org71e43e4)
+        -   [Vagrant](#orgb312198)
+        -   [kubeadm](#orgda6c303)
+        -   [GitLab](#orgfede7e9)
+
+
+
+<a id="orgfb78e1f"></a>
+
+# Index
+
+
+<a id="org95c9107"></a>
+
+## Introduction (4 pagine)
+
+
+<a id="org3771b0d"></a>
+
+### Introduzione DevOps
+
+
+<a id="orge02ff47"></a>
+
+### Veloce introduzione al concetto di CI/CD
+
+
+<a id="org6ddeaaa"></a>
+
+### Veloce introduzione all'orchestrazione container
+
+
+<a id="orgdb3d1d5"></a>
+
+### Classica immagine dei vari tipi di virtualizzazione (vm vs. container)
+
+-   Modalità di documentazione e tracciamento del codice (infrastructure as code), link al repo
+
+
+<a id="org154bfa3"></a>
+
+## Architecture
+
+-   Schema fisico (due VM, la tua macchina di controllo, con dentro i container di k8s, i container di gitlab e i contaioner della tua applicazioner, networking, software defined networking)
+-   Schema logico della CI/CD con i vari componenti
+
+
+<a id="org72ed53d"></a>
+
+## Installation
+
+-   Kubernetes  (come hai fatto l'installazione kubernetes. kubeadm. Parla anche di minikube dicendo quali sono le sue limitazionie)
+-   Docker registry
+-   Gitlab (descrivi come hai installato gitlab, metti screenshot dell'interfccia)
+-   CI/CD (fai vedere come hai creato la pipeline. Mettere un listato degli yaml più rilevante, spiegandoli)
+
+
+<a id="org03eed8b"></a>
+
+## Concluding remarks
+
+
+<a id="org3676e90"></a>
+
+# Thesis
+
+
+<a id="org872808a"></a>
+
+## DevOps Introduction
+
+
+<a id="orge4a5d39"></a>
+
+### Definition
+
+DevOps is a set of practices that combines software development (Dev) and
+information-technology operations (Ops) which aims to shorten the systems
+development life cycle and provide continuous delivery with high software
+quality.
+
+-   Understand the sentence:
+
+    -   **Software development** is the process of conceiving, specifying, designing, programming, documenting, testing, and bug fixing involved in creating and maintaining applications, frameworks, or other software components. Software development is a process of writing and maintaining the source code, but in a broader sense, it includes all that is involved between the conception of the desired software through to the final manifestation of the software, sometimes in a planned and structured process.
+    -   **IT operation** tasks fall into three areas: `Computer Operations & Help Desk; Network Infrastructure; and Server and Device Management`.  
+        n details:
+           Network Infrastructure
+               Infrastructure: router, hubs, firewalls, DNS servers, file servers, load balancing, etc.
+               Telecommunications: Managing and configuring all internal and external communication lines so that customers, employees, vendors, and other interested parties can access applications.
+               Port management: Opening and closing ports on the firewall to allow the network to communicate with outside servers.
+               Security: Insuring the network is secured only to authorized users and to prevent/counter attacks from outside sources
+               Remote access to the network for users: Setting up access from outside the network using techniques such as VPN, two-factor authentication, etc.
+               Internal telephone system management: Managing the company phone system
+               Monitoring network health and alerting network personnel when an issue occurs with network resources (including storage, services such as email or file servers, application servers, communications, etc.)
+           Server & Device Management
+               Server management for applications and infrastructure: Set up configuration, maintenance, upgrades, patching, repair, etc.
+               Network and individual storage management to insure that all applications have access to the storage requirements they need for disk, memory, backup, and archiving
+               Email and file server configuration and folder setup and authorization: This is classified as a separate area because outside of order taking & fulfillment and customer service, email and file server management are two of the most important IT functions in a company
+               PC provisioning: Acquisition, configuration, management, break/fix, applications installation & configuration, upgrades of company approved desktop and laptop devices
+               Mobile device and cell phone telecommunications management: Provisioning, assigning, managing, cell phone contracts, and phone numbers. Provisioning for mobile device approved by the organization. Providing for BYOD access to the network.
+               Desktop, laptop, and mobile device software application licensing and management
+           Computer Operations & Help Desk
+               Data Center management: Management of the physical locations where the equipment resides, including floor space, electricity, cooling, battery backups, etc.
+               Help Desk management: Level 1 support for IT Operations with responsibility for escalating issues to and following up on issues with Level 2 and Level 3 support.
+               User provisioning: Creation and authorization of user profiles on all systems. Also includes changes to user profiles and the procedure for deleting old user profiles
+               Auditing: Proving to outside entities (corporate auditors, the government, regulatory agencies, business partners, etc) that your network is correctly configured and secured
+               Communications with network users when a major incident occurs impacting network services
+               High availability and disaster recovery: Providing capabilities to insure your application servers and network can function in the event of a disaster
+               Backups management: Instituting and running daily, weekly, monthly, yearly backups to insure data can be recovered, if needed
+               Computer operations: Printing and distributing reports, invoices, checks, other outputs from a production systems, such as an IBM i
+               Maintain, manage, and add to the IT Infrastructure Library (ITIL) for the organization
+
+
+<a id="org0e2eba7"></a>
+
+### Agile and Lean: how are they related with Devops?
+
+DevOps has strong affinities with Agile and Lean approaches. The old view of operations tended towards the “Dev” side being the “makers” and the “Ops” side being the “people that deal with the creation after its birth” – the realization of the harm that has been done in the industry of those two being treated as siloed concerns is the core driver behind DevOps. In this way, DevOps can be interpreted as an outgrowth of Agile – agile software development prescribes close collaboration of customers, product management, developers, and (sometimes) QA to fill in the gaps and rapidly iterate towards a better product – DevOps says “yes, but service delivery and how the app and systems interact are a fundamental part of the value proposition to the client as well, and so the product team needs to include those concerns as a top level item.” From this perspective, DevOps is simply extending Agile principles beyond the boundaries of “the code” to the entire delivered service.
+
+
+<a id="org9296d34"></a>
+
+### DevOps core concept
+
+-   Infrastructure Automation – create your systems, OS configs, and app deployments as code.
+-   Continuous Delivery – build, test, deploy your apps in a fast and automated manner.
+-   Site Reliability Engineering – operate your systems; monitoring and orchestration, sure, but also designing for operability in the first place.
+
+**Needs a summary definition of: core concept and tools&#x2026;**
+
+
+<a id="org4ab61a2"></a>
+
+## CI/CD introduction
+
+[[<https://www.google.com/url?sa=i&rct=j&q=&esrc=s&source=images&cd=&cad=rja&uact=8&ved=2ahUKEwiVxd6JhtTmAhW3wAIHHXMsAQkQjRx6BAgBEAQ&url=https://www.redhat.com/it/topics/devops/what-is-ci-cd&psig=AOvVaw0n6SRY0fI7miu7b0qgNgy-&ust=1577474826190727>]]
+
+
+<a id="org7a2f83c"></a>
+
+### Continuous integration
+
+Developers practicing continuous integration merge their changes back to the main branch as often as possible. The developer's changes are validated by creating a build and running automated tests against the build. By doing so, you avoid the integration hell that usually happens when people wait for release day to merge their changes into the release branch.
+
+Continuous integration puts a great emphasis on testing automation to check that
+the application is not broken whenever new commits are integrated into the main
+branch.    
+
+
+<a id="org4f42e9f"></a>
+
+### Continuous delivery
+
+Continuous delivery is an extension of continuous integration to make sure that
+you can release new changes to your customers quickly in a sustainable way. This
+means that on top of having automated your testing, you also have automated your
+release process and you can deploy your application at any point of time by
+clicking on a button.
+
+In theory, with continuous delivery, you can decide to release daily, weekly,
+fortnightly, or whatever suits your business requirements. However, if you truly
+want to get the benefits of continuous delivery, you should deploy to production
+as early as possible to make sure that you release small batches that are easy
+to troubleshoot in case of a problem. 
+
+
+<a id="org346234b"></a>
+
+### Continuous deployment
+
+Continuous deployment goes one step further than continuous delivery. With this practice, every change that passes all stages of your production pipeline is released to your customers. There's no human intervention, and only a failed test will prevent a new change to be deployed to production.
+
+Continuous deployment is an excellent way to accelerate the feedback loop with your customers and take pressure off the team as there isn't a Release Day anymore. Developers can focus on building software, and they see their work go live minutes after they've finished working on it.
+
+
+<a id="org699aa69"></a>
+
+### Costs and benefits
+
+Costs:
+
+-   Your team will need to write automated tests for each new feature, improvement or bug fix.
+-   You need a continuous integration server that can monitor the main repository and run the tests automatically for every new commits pushed.
+-   Developers need to merge their changes as often as possible, at least once a day.
+
+Benefits:
+
+-   Less bugs get shipped to production as regressions are captured early by the automated tests.
+-   Building the release is easy as all integration issues have been solved early.
+-   Less context switching as developers are alerted as soon as they break the build and can work on fixing it before they move to another task.
+-   Testing costs are reduced drastically – your CI server can run hundreds of tests in the matter of seconds.
+-   Your QA team spend less time testing and can focus on significant improvements to the quality culture.
+-   The complexity of deploying software has been taken away. Your team doesn't have to spend days preparing for a release anymore.
+-   Releases are less risky and easier to fix in case of problem as you deploy small batches of changes.
+-   Customers see a continuous stream of improvements, and quality increases every day, instead of every month, quarter or year.
+
+
+<a id="org4109de7"></a>
+
+## Container orchestration
+
+
+<a id="org4ca2e95"></a>
+
+### Container
+
+-   TLDR
+
+    There are a few new Linux kernel features, **namespaces** and **cgroups**, that let you isolate processes from each other. When you use those features, you call it **containers**.
+    
+    -   Why
+    
+        We used to create monolith application: one huge block of code on one server with a long development cycle (months) and buy bigger server to scale up. 
+        
+        Now we try to break down application in part that could be deployed indipendently with fast improvements. Scaling is done adding more servers and a load balancer exist from day 1. 
+        Deployment become more difficult beacuse there are more components and more diffrent hardware. But with containers we doesn't care what is the underlying system (on-prem, cloud, VM, laptop) or what's inside (DB, frontend, backend, static websiste)
+        
+        **Container**: feel like a vm but is **not** (just idea at the beginning):
+        
+        -   can ssh into it (don't)
+        -   `ps/top` see only each own processes or `ip/hostname`
+        
+        BUT:
+        
+        -   use host kernel
+        -   no need `ĩnit` as PID1
+        
+        Containers for the kernel are just cgroups and namespaces.
+
+-   Deep dive
+
+    To actually understand why container are possible, we need to go deeper in kernel mechanisms:
+    
+    -   It provides an API to application via system calls
+    -   It is the only layer of abstraction
+    
+    ![img](./images/user-space-vs-kernel-space-simple-user-space.png)
+    **[User space](http://www.linfo.org/user_space.html)**: 
+    
+    **[All together](https://itnext.io/breaking-down-containers-part-0-system-architecture-37afe0e51770)**
+    
+    -   Cgroups
+    
+        **Cgroups**: metering and limiting the resources used by processes. 
+        Each subsystem has it's own hierarchy (tree) and each process belong to one node in each hierarchy. 
+        
+        -   Memory cgroups
+        
+            -   accounting:
+            
+                -   <sup><a id="fnr.1" class="footref" href="#fn.1">1</a></sup>keep track of every single memory page (4kb) used by groups (mmap mapping types):
+                    -   file: what correspond to a file on the disk. So you need more memory, the pages about that file can be removed.
+                
+                -   anonymous: does not correspond to something on disk.
+                
+                These two types will go by default to `active` memory and where we need extra memory they will arbitrary go to `inactive`. Each time i touch a page it will go back to active. 
+            
+            -   limits:
+            
+                -   hard: if process goes above this limits, it will be killed.
+                -   soft: when we are close to be out of memory, it will take pages from process who doesn't need them.
+                
+                Avoiding Out of memory killer with oom-notifier
+        
+        -   CPU cgroup:
+        
+            -   it keeps track of user/system CPU time, and user per CPU
+            -   allow to set weights
+            -   can't set CPU limits: it doesn't make sense neither in percentage (because if we limit a process to use 10% of CPU, the system will slow down the CPU), CPU cycle (some cycle (basic operation).
+            
+            -   Cpuset cgroup
+            
+                -   It permit to pin a set of process to one cpu: dedicate cpus to specific task.
+                -   Useful for NUMA systems where a CPU can access faster its own local memory.
+        
+        -   Block I/O: min 18
+        
+            Keep track of read/writes and sync/async for each group 
+            Network I/O:
+            
+            -   net<sub>cls</sub>: for traffic class.
+            -   net<sub>prio</sub>: for traffic priority
+            
+            They attach a tag on traffic, then still have to use tc (traffic control). 
+            
+            -   network
+        
+        -   Devices cgroup
+        
+            Which container can read/write on which device. 
+            Interesting node:
+            
+            -   /dev/net/tun: network interface manipulation. For example have a VPN client inside the container without polluting the network stack of host
+            -   /dev/fuse: to have custom filesystem in container
+            -   /dev/kvm: VMs in containers
+            -   dev/dri: expose GPU to use GPU intensive application inside containers
+        
+        -   Freezer cgroup
+        
+            It do a SIGSTOP to all container without the process know it. It's useful when we don't what the process to know that we are SIGSTOPPing it (ptrace(), debugging). Used for cluster batch scheduling and process migration (freeze, move, unfreeze). 
+        
+        -   Subtleties
+        
+            -   SubtletiesPID 1 is placed at the root of each hierarchy
+            -   When a process is created, it is placed in the same groupsas its parentGroups are materialized by one (or multiple) pseudo-fs (typically mounted in /sys/fs/cgroup)
+            -   Groups are created by mkdir in the pseudo-fs
+            -   To move a process:
+                echo $PID > *sys/fs/cgroup*&#x2026;/tasks
+            -   The cgroup wars: systemd vs cgmanager vs &#x2026;
+    
+    -   Namespaces
+    
+        Limiting what a space can view. Each process is associated with a namespace and can only see or use the resources associated with that namespace. 
+        There are multiple namespaces: pid, net, mnt, uts, ipc, user and each process is in one namespace of each kind. 
+        
+        -   Type of namespaces
+        
+            -   Pid
+            
+                -   Process within a PID namespace only see processes in the same PID namespace
+                -   Each PID namespace has its own numbering starting at 1
+                -   If PID 1 stop, whole namespace is killed.
+                -   Those namespaces can be nested
+                -   A process ens up having multiple PIDs: one per namespace in which its nested.
+            
+            -   Network
+            
+                -   Process within a given network namespace get their own private network stack: interfaces, routing tables, iptables, socket.
+                -   It's possible to move a netowrk interface across netns: `ip link set dev eth0 netns PID`
+                -   Usually on the host there are vethXXX, each one attached to eth0 inside network namespace of a container. All vethXXX are bridged together with docker0.
+            
+            -   mnt
+            
+                -   Mount something only in one container.
+            
+            -   IPC
+            
+                Allow process to have their own:
+                
+                -   IPC semaphores
+                -   IPC message queues
+                -   IPC shared memory
+            
+            -   User
+            
+                Contains a mapping table converting user IDs from the container's point of view to the system's point of view. This allows, for example, the root user to have user id 0 in the container but is actually treated as user id 1,400,000 by the system for ownership checks. A similar table is used for group id mappings and ownership checks. 
+        
+        -   Namespace manipulation
+        
+            -   Creation: when create a process with an extra flag
+            -   View namespace of a process: ls -l /proc/$$/ns
+            -   With bind mount i can prevent the deletion of a namespace
+        
+        -   Copy-on-write
+        
+            Namespaces and cgroups aren't enough: it permit to create container instantly. 
+    
+    -   Other stuff
+    
+        -   Ortogonality:
+        
+            -   each component can be used indipendently
+            -   Capabilities: Linux can divide the privileges traditionally associated with superuser into distinct units, which can be indipendently enabled.
+            -   SELinux/AppArmor
+
+
+<a id="org66a0a19"></a>
+
+### Orchestration
+
+
+<a id="org0ae120a"></a>
+
+## How network work in kubernetes
+
+[Resource](https://sookocheff.com/post/kubernetes/understanding-kubernetes-networking-model/)
+
+
+<a id="org298aecf"></a>
+
+### Basics
+
+-   API: everything is an API call to the API-server that send the request to the etcd datastore.
+-   Controllers: they operate a loop that continuously watch the current state against the desired state
+
+
+<a id="org0db6203"></a>
+
+### Networking model
+
+-   all Pods (and Nodes) can communicate with all other Pods without NAT
+
+We have to define:
+
+-   Container to container
+
+    Thanks to network namespace that provides a brand new network stack for all the processes within the namespace: `ip netns add ns1`
+    
+    When the namespace is created, a mount point for it is created under /var/run/netns, allowing the namespace to persist even if there is no process attached to it. To list netowrk namespaces: `cat /var/run/netns` or `ip list`
+    
+    A Pod is a group of Docker containers that share a network namespace. Containers within a Pod all have the same IP address and port space assigned through the network namespace assigned to the Pod, and can find each other via localhost since they reside in the same namespace. 
+
+-   Pod to Pod
+
+    -   On the same node
+    
+        -   TLDR:
+        
+        Given the network namespaces that isolate each Pod to their own networking stack, virtual Ethernet devices that connect each namespace to the root namespace, and a bridge that connects namespaces together, we are finally ready to send traffic between Pods on the same Node.
+        
+        Namespaces can be connected using a Linux Virtual Ethernet Device or veth pair consisting of two virtual interfaces that can be spread over multiple namespaces. To connect Pod namespaces, we can assign one side of the veth pair to the root network namespace, and the other side to the Pod’s network namespace. Each veth pair works like a patch cable, connecting the two sides and allowing traffic to flow between them. This setup can be replicated for as many Pods as we have on the machine.
+        
+        Now, we want the Pods to talk to each other through the root namespace, and for this we use a network bridge.
+        
+        A Linux Ethernet bridge is a virtual Layer 2 networking device that implement ARP protocol to discover link-layer MAC adress associated with a given IP address. 
+        
+        ![img](./images/pods-connected-by-bridge.png)
+    
+    -   On different nodes
+    
+        All work as before (network ns, veth, bridge) until the packet arrives to the bridge. Here ARP will fail and the packet will be sent to default route: eth0 on root namespace. 
+        
+        CNI automatically create routes to tell node1 on which node are a specific pod's CIDR. 
+
+
+<a id="orgd9b5bb7"></a>
+
+## My Architecture
+
+
+<a id="org71e43e4"></a>
+
+### Diagram arichitecture
+
+**diagram architecture**
+
+-   The VirtualBox HOST ONLY network will be the network used to access the Kubernetes master and nodes from outside the network, it can be considered the Kubernetes public network for our development environment. 192.168.60.0/24
+
+Virtualbox create the route: 192.168.50.0 0.0.0.0 255.255.255.0 U 0 0 0 vboxnet0
+
+Applications published using a Kubernetes NodePort will be available at all the IPs assigned to the Kubernetes servers. Example, for an application published at nodePort 30000 the following URLs will allow access from outside the Kubernetes cluster: <http://192.168.60.11:30000/>
+
+-   The NAT network interface, with the same IP (10.0.2.15) for all servers, is assigned to the first interface or each VirtualBox machine, it is used to access the external world (LAN & Internet) from inside the Kubernetes cluster.
+
+For example, it is used during the Kubernetes cluster configuration to download the needed packages. Since it is a NAT interface it doesn’t allow inbound connections by default.
+
+-   The internal connections between Kubernetes PODs use a tunnel network with IPs on the CIDR range 10.244.0.0 (as configured by our Ansible playbook)
+
+Kubernetes will assign IPs from the POD Network to each POD that it creates. POD IPs are not accessible from outside the Kubernetes cluster and will change when PODs are destroyed and created.
+
+-   The Kubernetes Cluster Network is a private IP range used inside the cluster to give each Kubernetes service a dedicated IP.
+
+Cluster-IPs can’t be accessed from outside the Kubernetes cluster, therefore, a NodePort is created (or a LoadBalancer in a Cloud provider) to publish an app. NodePort uses the Kubernetes external IPs.
+
+
+<a id="orgb312198"></a>
+
+### Vagrant
+
+-   Why vagrant?
+
+    Vagrant is a tool that will allow us to create a virtual environment easily and it eliminates pitfalls that cause the works-on-my-machine phenomenon.
+    
+    Multi node Kubernetes clusters offer a production-like environment which has various advantages. Even though Minikube provides an excellent platform for getting started, it doesn’t provide the opportunity to work with multi node clusters which can help solve problems or bugs that are related to application design and architecture. 
+    
+    Furthermore minikube let us completely skip the actual kubernetes installation, which can be good at the beginning but is also hiding an important part of the process. 
+
+-   Vagrantfile
+
+        (1..NODES).each do |i|
+          config.vm.define "node#{i}" do |node|
+            node.ssh.forward_agent = true
+            node.vm.box = BOX
+            node.vm.hostname = "worker#{i}"
+            node.vm.network "private_network", ip: "192.168.60.20#{i}", netmask: "255.255.255.0"
+            node.vm.provision :shell, inline: "sed 's/127\.0\.0\.1.*node.*/192\.168\.60\.20#{i} worker#{i}/' -i /etc/hosts"
+    
+    This snippet of the vagrant file contains some of the most important functionality we need:
+    With a loop we define as many virtual machines as we specified in `NODES` variable.  
+    
+    The directive config.vm.define takes a single required parameter which is the name of the virtual machine and then permit to configure its settings. 
+
+
+<a id="orgda6c303"></a>
+
+### kubeadm
+
+Once the nodes are up, we can proceed with kubernetes installation using kubeadm. 
+It performs the actions necessary to get a minimum viable cluster up and running. By design, it cares only about bootstrapping, not about provisioning machines.
+
+-   Requirements
+
+    *All the commands regarding the requirements must be done on each
+    nodes*. To do it i used tmux with the `:setw synchronize-panes on`
+    option.
+    
+    ![img](https://github.com/kelseyhightower/kubernetes-the-hard-way/blob/master/docs/images/tmux-screenshot.png "tmux sync pane")
+    
+    -   Verify the MAC address and product<sub>uuid</sub> are unique for every node
+        -   `ip link`
+        -   `sudo cat /sys/class/dmi/id/product_uuid`
+    -   Disable swap
+        -   `swapoff -a`
+    -   Every node must have a different hostname and need to open ports
+    
+    -   Install kubectl, kubelet and kubeadm
+    
+        -   Add kubernetes repository
+        
+            cat <<EOF > /etc/yum.repos.d/kubernetes.repo
+            [kubernetes]
+            name=Kubernetes
+            baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+            enabled=1
+            gpgcheck=1
+            repo_gpgcheck=1
+            gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+            EOF
+        
+        -   Set SELinux in permissive mode (effectively disabling it)
+        
+            setenforce 0
+            sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
+            
+            yum install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
+            
+            systemctl enable --now kubelet
+        
+        -   Make sure that the `br_netfilter` module is loaded before this step
+            with=lsmod | grep br<sub>netfilter</sub>=. To load it explicitly:
+            `modprobe br_netfilter`
+    
+    -   Install docker CE
+    
+        -   *Install required packages*
+            
+                yum install yum-utils device-mapper-persistent-data lvm2
+        
+        -   *Add Docker repository*
+            
+                yum-config-manager \
+                --add-repo \
+                https://download.docker.com/linux/centos/docker-ce.repo
+        
+        -   *Install Docker CE*
+            
+                yum update && yum install docker-ce-18.06.2.ce
+        
+        -   *Create /etc/docker directory* `mkdir /etc/docker`
+        
+        -   *Setup daemon* \`\`\`bash cat > /etc/docker/daemon.json <<EOF {
+            "exec-opts": ["native.cgroupdriver=systemd"], "log-driver":
+            "json-file", "log-opts": { "max-size": "100m" }, "storage-driver":
+            "overlay2", "storage-opts": [ "overlay2.override<sub>kernel</sub><sub>check</sub>=true"
+            ] } EOF
+            
+            mkdir -p /etc/systemd/system/docker.service.d \`\`\`
+        
+        -   *Restart Docker*
+            `bash   systemctl daemon-reload   systemctl restart docker`
+    
+    -   Network plugin: flannel
+    
+        -   Set `/proc/sys/net/bridge/bridge-nf-call-iptables` to `1` by
+            running = sysctl net.bridge.bridge-nf-call-iptables=1= to pass
+            bridged IPv4 traffic to iptables' chains
+
+-   Initialize the cluster
+
+    -   Kubeadm init
+    
+        With `kubeadm init` adding `--apiserver-advertise-address` with the IP if there are multiple interface and `--pod-network-cidr=10.244.0.0/16` to make flannel work: `kubeadm init --apiserver-advertise-address --pod-network-cidr=10.244.0.0/16`
+    
+    -   Use the cluster
+    
+        Copy the config in the home directory to be used by kubectl, as normal
+        
+            mkdir -p $HOME/.kube
+            sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+            sudo chown $(id -u):$(id -g) $HOME/.kube/config
+    
+    -   Run flannel pods
+    
+        `shell  kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/2140ac876ef134e0ed5af15c65e414cf26827915/Documentation/kube-flannel.yml`
+        
+        As the output of kubeadm say:
+        
+            Then you can join any number of worker nodes by running the following on each as root:
+            
+            kubeadm join 192.168.60.101:6443 --token kbrccr.gkqno5vco54n1ilc \
+                --discovery-token-ca-cert-hash sha256:2d16a996778f4a003d23725ec64bf6070fce61f49e96bc74123ccf98bcd6a08
+        
+        To use `kubectl` from other nodes than the master copy `/etc/kubernetes/admin.conf` on that node and choose a way to use it: 
+        
+        -   `kubectl --kubeconfig ./admin.conf get nodes`
+        -   `export KUBECONFIG=/etc/kubernetes/admin.conf`
+        -   copy it insiede `$HOME/.kube/config`
+        
+        To export it from vagrant vm `vagrant scp master1:/home/vagrant/.kube/config /home/user/.kube/vagrant-conf`
+
+
+<a id="orgfede7e9"></a>
+
+### GitLab
+
+
+# Footnotes
+
+<sup><a id="fn.1" href="#fnr.1">1</a></sup> **Paging**:
+Ram size is very limited compare with HDD size. 
+With multitasking and heavy software the ram memory is full quickly. 
+**Paging** is **memory management scheme** that we need is such cases. 
+We use a portion of the HDD as a **virtual RAM**: some part of the running application can be store in HDD if they are not used. 
+Page are block of memory on HDD, frame are blocks on RAM, same thing different names. 
+ fs
+
+(use-package '

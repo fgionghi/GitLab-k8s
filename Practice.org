@@ -1,6 +1,10 @@
 #+SETUPFILE: https://fniessen.github.io/org-html-themes/setup/theme-readtheorg.setup
 
 #+TITLE:CI/CD pipeline on container platform
+#+OPTIONS: toc:nil
+#+REVEAL: split
+#+REVEAL_THEME: moon
+#+REVEAL_PLUGINS: notes
 
   :END:
   
@@ -8,6 +12,7 @@
    :PROPERTIES:
    :CUSTOM_ID: deploy-kubernetes-with-kubeadm
    :END:
+   <n
 [[https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/][Kubeadm
 official docs]]
 
@@ -176,7 +181,7 @@ Helm Chart.
 
   helm init --service-account tiller
 #+END_SRC
-See [[tiller][Troubleshooting/tiller]] for problems. 
+See Troubleshooting/tiller for problems.
 ** Install gitlab
 See [[apiVersion error]] 
 and [[Use the edited chart]] 
@@ -190,7 +195,7 @@ Then see [[The page is not reacheble]] to edit the ingress service
 =k describe nodes= =journalctl -u kubelet= on each node And in case of
 errors check if flannel pods are presents, or: =swapoff -a=
 =kubeadm reset=
-** <<Tiller>> on cluster does not respond
+** Tiller on cluster does not respond
 
 (=Error: forwarding ports: error upgrading connection: unable to upgrade connection: pod does not exist=):
    install tiller locally =https://rimusz.net/tillerless-helm=
@@ -202,7 +207,7 @@ Have to edit the apiVersion, so:
    - change each =extensions/v1beta1= in deployment resources to
      =apps/v1=
 
-** <<Use the edited chart>>: 
+** <<Use the edited chart>>:
 #+begin_src bash
 helm upgrade --install gitlab ./gitlab
    --timeout 600 --set global.hosts.domain=local --set

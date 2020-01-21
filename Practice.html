@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>CI/CD pipeline on container platform</title>
+<meta name="author" content="Francesco Gionghi"/>
+<style type="text/css">
+.underline { text-decoration: underline; }
+</style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@3/css/reveal.css"/>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@3/css/theme/black.css" id="theme"/>
+
+<!-- If the query includes 'print-pdf', include the PDF print sheet -->
+<script>
+    if( window.location.search.match( /print-pdf/gi ) ) {
+        var link = document.createElement( 'link' );
+        link.rel = 'stylesheet';
+        link.type = 'text/css';
+        link.href = 'https://cdn.jsdelivr.net/npm/reveal.js@3/css/print/pdf.css';
+        document.getElementsByTagName( 'head' )[0].appendChild( link );
+    }
+</script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<link rel="stylesheet" type="text/css" href="https://fniessen.github.io/org-html-themes/styles/readtheorg/css/htmlize.css"/>
+<link rel="stylesheet" type="text/css" href="https://fniessen.github.io/org-html-themes/styles/readtheorg/css/readtheorg.css"/>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="https://fniessen.github.io/org-html-themes/styles/lib/js/jquery.stickytableheaders.min.js"></script>
+<script type="text/javascript" src="https://fniessen.github.io/org-html-themes/styles/readtheorg/js/readtheorg.js"></script>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+<section id="sec-title-slide">
+<h1 class="title">CI/CD pipeline on container platform</h1><h2 class="author">Francesco Gionghi</h2><p class="date">Created: 2020-01-16 gio 17:46</p>
+</section>
+<section id="table-of-contents-section">
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#/slide-deploy-kubernetes-with-kubeadm">1. Deploy kubernetes with kubeadm</a>
+<ul>
+<li><a href="#/slide-requirements">1.1. Requirements</a>
+<ul>
+<li><a href="#/slide-1-1-1">1.1.1. Verify the MAC address and product<sub>uuid</sub> are unique for every node</a></li>
+<li><a href="#/slide-1-1-2">1.1.2. Disable swap</a></li>
+<li><a href="#/slide-1-1-3">1.1.3. Disable firewall</a></li>
+<li><a href="#/slide-1-1-4">1.1.4. Every node must have a different hostname and need to open ports</a></li>
+<li><a href="#/slide-1-1-5">1.1.5. Install kubectl, kubelet and kubeadm</a></li>
+<li><a href="#/slide-1-1-6">1.1.6. Install docker CE</a></li>
+<li><a href="#/slide-1-1-7">1.1.7. Network plugin: flannel</a></li>
+</ul>
+</li>
+<li><a href="#/slide-initialize-the-cluster">1.2. Initialize the cluster</a>
+<ul>
+<li><a href="#/slide-1-2-1">1.2.1. Initialize the cluster</a></li>
+<li><a href="#/slide-1-2-2">1.2.2. Copy the config in the home directory to be used by kubectl, as</a></li>
+<li><a href="#/slide-1-2-3">1.2.3. Run flannel pods</a></li>
+<li><a href="#/slide-1-2-4">1.2.4. See Pod not found</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#/slide-install-gitlab-container">2. Install GitLab container</a>
+<ul>
+<li><a href="#/slide-2-1">2.1. Install helm on client machine:</a></li>
+<li><a href="#/slide-2-2">2.2. Install Tiller on the cluster:</a></li>
+<li><a href="#/slide-2-3">2.3. Install gitlab</a></li>
+</ul>
+</li>
+<li><a href="#/slide-troubleshooting-1">3. Troubleshooting</a>
+<ul>
+<li><a href="#/slide-3-1">3.1. Nodes not ready</a></li>
+<li><a href="#/slide-3-2">3.2. Tiller on cluster does not respond</a></li>
+<li><a href="#/slide-3-3">3.3. </a></li>
+<li><a href="#/slide-3-4">3.4. :</a></li>
+<li><a href="#/slide-3-5">3.5. 1</a></li>
+<li><a href="#/slide-3-6">3.6. DONE </a>
+<ul>
+<li><a href="#/slide-3-6-1">3.6.1. Tentativi</a></li>
+<li><a href="#/slide-3-6-2">3.6.2. Solution</a></li>
+</ul>
+</li>
+<li><a href="#/slide-3-7">3.7. Destroy all vagrant machines:</a></li>
+<li><a href="#/slide-3-8">3.8. TODO Nginx 503</a>
+<ul>
+<li><a href="#/slide-3-8-1">3.8.1. See Pod communication</a></li>
+</ul>
+</li>
+<li><a href="#/slide-3-9">3.9. Pod communication</a>
+<ul>
+<li><a href="#/slide-3-9-1">3.9.1. Test: pod on different nodes</a></li>
+<li><a href="#/slide-3-9-2">3.9.2. Tentativi</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#/slide-4">4. Minikube</a></li>
+<li><a href="#/slide-5">5. Helm install command</a></li>
+</ul>
+</div>
+</div>
+</section>
+
+<section>
+<section id="slide-deploy-kubernetes-with-kubeadm">
+<h2 id="deploy-kubernetes-with-kubeadm"><span class="section-number-2">1</span> Deploy kubernetes with kubeadm</h2>
+<p>
+<a href="https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/">Kubeadm
+official docs</a>
+</p>
+
+</section>
+<section id="slide-requirements">
+<h3 id="requirements"><span class="section-number-3">1.1</span> Requirements</h3>
+<p>
+<i>All the commands regarding the requirements must be done on each
+nodes</i>. To do it i used tmux with the <code>:setw synchronize-panes on</code>
+option.
+</p>
+
+
+<div class="figure">
+<p><img src="https://github.com/kelseyhightower/kubernetes-the-hard-way/blob/master/docs/images/tmux-screenshot.png" alt="tmux-screenshot.png" />
+</p>
+<p><span class="figure-number">Figure 1: </span>tmux sync pane</p>
+</div>
+
+</section>
+<section id="slide-1-1-1">
+<h4 id="1-1-1"><span class="section-number-4">1.1.1</span> Verify the MAC address and product<sub>uuid</sub> are unique for every node</h4>
+<ul>
+<li><code>ip link</code>
+
+<ul>
+<li><code>sudo cat /sys/class/dmi/id/product_uuid</code></li>
+
+</ul></li>
+
+</ul>
+
+</section>
+<section id="slide-1-1-2">
+<h4 id="1-1-2"><span class="section-number-4">1.1.2</span> Disable swap</h4>
+<ul>
+<li><code>swapoff -a</code></li>
+
+</ul>
+
+</section>
+<section id="slide-1-1-3">
+<h4 id="1-1-3"><span class="section-number-4">1.1.3</span> Disable firewall</h4>
+
+
+</section>
+<section id="slide-1-1-4">
+<h4 id="1-1-4"><span class="section-number-4">1.1.4</span> Every node must have a different hostname and need to open ports</h4>
+
+</section>
+<section id="slide-1-1-5">
+<h4 id="1-1-5"><span class="section-number-4">1.1.5</span> Install kubectl, kubelet and kubeadm</h4>
+<ul>
+<li>Add kubernetes repository</li>
+
+</ul>
+
+<div class="org-src-container">
+
+<pre  class="src src-sh">     <span style="color: #ECBE7B;">cat</span> &lt;&lt;EOF &gt; /etc/yum.repos.d/kubernetes.repo
+<span style="color: #98be65;">     [kubernetes]</span>
+<span style="color: #98be65;">     name=Kubernetes</span>
+<span style="color: #98be65;">     baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64</span>
+<span style="color: #98be65;">     enabled=1</span>
+<span style="color: #98be65;">     gpgcheck=1</span>
+<span style="color: #98be65;">     repo_gpgcheck=1</span>
+<span style="color: #98be65;">     gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg</span>
+<span style="color: #98be65;">     EOF</span>
+</pre>
+</div>
+
+<ul>
+<li>Set SELinux in permissive mode (effectively disabling it)</li>
+
+</ul>
+
+<div class="org-src-container">
+
+<pre  class="src src-sh">     setenforce <span style="color: #da8548; font-weight: bold;">0</span>
+     sed -i <span style="color: #98be65;">'s/^SELINUX=enforcing$/SELINUX=permissive/'</span> /etc/selinux/config
+
+     yum install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
+
+     systemctl enable --now kubelet
+</pre>
+</div>
+
+<ul>
+<li>Make sure that the <code>br_netfilter</code> module is loaded before this step
+with=lsmod | grep br<sub>netfilter</sub>=. To load it explicitly:
+<code>modprobe br_netfilter</code></li>
+
+</ul>
+
+</section>
+<section id="slide-1-1-6">
+<h4 id="1-1-6"><span class="section-number-4">1.1.6</span> Install docker CE</h4>
+<ul>
+<li><p>
+<i>Install required packages</i>
+</p>
+
+<div class="org-src-container">
+
+<pre  class="src src-sh">       yum install yum-utils device-mapper-persistent-data lvm2
+</pre>
+</div></li>
+
+<li><p>
+<i>Add Docker repository</i>
+</p>
+
+<div class="org-src-container">
+
+<pre  class="src src-sh">       yum-config-manager <span style="color: #98be65;">\</span>
+       --add-repo <span style="color: #98be65;">\</span>
+       https://download.docker.com/linux/centos/docker-ce.repo
+</pre>
+</div></li>
+
+<li><p>
+<i>Install Docker CE</i>
+</p>
+
+<div class="org-src-container">
+
+<pre  class="src src-sh">       yum update &amp;&amp; yum install docker-ce-18.06.2.ce
+</pre>
+</div></li>
+
+<li><i>Create /etc/docker directory</i> <code>mkdir /etc/docker</code></li>
+
+<li><p>
+<i>Setup daemon</i> ```bash cat &gt; /etc/docker/daemon.json &lt;&lt;EOF {
+&ldquo;exec-opts&rdquo;: [&ldquo;native.cgroupdriver=systemd&rdquo;], &ldquo;log-driver&rdquo;:
+&ldquo;json-file&rdquo;, &ldquo;log-opts&rdquo;: { &ldquo;max-size&rdquo;: &ldquo;100m&rdquo; }, &ldquo;storage-driver&rdquo;:
+&ldquo;overlay2&rdquo;, &ldquo;storage-opts&rdquo;: [ &ldquo;overlay2.override<sub>kernel</sub><sub>check</sub>=true&rdquo;
+] } EOF
+</p>
+
+<p>
+mkdir -p /etc/systemd/system/docker.service.d ```
+</p></li>
+
+<li><i>Restart Docker</i>
+<code>bash   systemctl daemon-reload   systemctl restart docker</code></li>
+
+</ul>
+
+</section>
+<section id="slide-1-1-7">
+<h4 id="1-1-7"><span class="section-number-4">1.1.7</span> Network plugin: flannel</h4>
+<ul>
+<li>Set <code>/proc/sys/net/bridge/bridge-nf-call-iptables</code> to <code>1</code> by
+running = sysctl net.bridge.bridge-nf-call-iptables=1= to pass
+bridged IPv4 traffic to iptables&rsquo; chains</li>
+
+</ul>
+
+</section>
+<section id="slide-initialize-the-cluster">
+<h3 id="initialize-the-cluster"><span class="section-number-3">1.2</span> Initialize the cluster</h3>
+</section>
+<section id="slide-1-2-1">
+<h4 id="1-2-1"><span class="section-number-4">1.2.1</span> Initialize the cluster</h4>
+<p>
+With <code>kubeadm init</code> adding <code>--apiserver-advertise-address</code> with the IP if there are multiple
+   interface and <code>--pod-network-cidr=10.244.0.0/16</code> to make flannel
+   work: kubeadm init &#x2013;apiserver-advertise-address &#x2013;pod-network-cidr=10.244.0.0/16
+</p>
+
+</section>
+<section id="slide-1-2-2">
+<h4 id="1-2-2"><span class="section-number-4">1.2.2</span> Copy the config in the home directory to be used by kubectl, as</h4>
+<p>
+normal user
+</p>
+
+<div class="org-src-container">
+
+<pre  class="src src-sh">     <span style="color: #ECBE7B;">mkdir</span> -p $<span style="color: #dcaeea;">HOME</span>/.kube
+     <span style="color: #ECBE7B;">sudo</span> <span style="color: #ECBE7B;">cp</span> -i /etc/kubernetes/admin.conf $<span style="color: #dcaeea;">HOME</span>/.kube/config
+     <span style="color: #ECBE7B;">sudo</span> <span style="color: #ECBE7B;">chown</span> $<span style="color: #51afef;">(</span>id -u<span style="color: #51afef;">)</span>:$<span style="color: #51afef;">(</span>id -g<span style="color: #51afef;">)</span> $<span style="color: #dcaeea;">HOME</span>/.kube/config
+</pre>
+</div>
+
+</section>
+<section id="slide-1-2-3">
+<h4 id="1-2-3"><span class="section-number-4">1.2.3</span> Run flannel pods</h4>
+<p>
+<code>shell  kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/2140ac876ef134e0ed5af15c65e414cf26827915/Documentation/kube-flannel.yml</code>
+</p>
+
+<p>
+As the output of kubeadm say:
+</p>
+
+<div class="org-src-container">
+
+<pre  class="src src-sh">  Then you can join any number of worker nodes by running the following on each as root:
+
+  kubeadm join 192.168.60.101:6443 --token kbrccr.gkqno5vco54n1ilc <span style="color: #98be65;">\</span>
+      --discovery-token-ca-cert-hash sha256:2d16a996778f4a003d23725ec64bf6070fce61f49e96bc74123ccf98bcd6a08
+</pre>
+</div>
+
+<p>
+To use <code>kubectl</code> from other nodes than the master copy
+<code>/etc/kubernetes/admin.conf</code> on that node and choose a way to use it: -
+<code>kubectl --kubeconfig ./admin.conf get nodes</code> -
+<code>export KUBECONFIG=/etc/kubernetes/admin.conf</code> - copy it insiede
+<code>$HOME/.kube/config</code> - from vagrant vm
+<code>vagrant scp master1:/home/vagrant/.kube/config /home/giogio/.kube/vagrant-conf</code>
+</p>
+</section>
+<section id="slide-1-2-4">
+<h4 id="1-2-4"><span class="section-number-4">1.2.4</span> See <a href="#/slide-orgde4ba6d" class="forwardlink">3.6</a></h4>
+</section>
+</section>
+<section>
+<section id="slide-install-gitlab-container">
+<h2 id="install-gitlab-container"><span class="section-number-2">2</span> Install GitLab container</h2>
+<p>
+As suggested in the <a href="https://docs.gitlab.com/charts/">official GitLab
+documentation</a> the best way to deploy GitLab on kuberntes is with an
+Helm Chart.
+</p>
+
+</section>
+<section id="slide-2-1">
+<h3 id="2-1"><span class="section-number-3">2.1</span> Install helm on client machine:</h3>
+<ul>
+<li>Download your <a href="https://github.com/helm/helm/releases">desired
+version</a></li>
+<li>Unpack it (<code>tar -zxvf helm-v3.0.0-linux-amd64.tgz</code>)</li>
+<li>Find the <code>helm</code> binary in the unpacked directory, and move it to
+its desired destination (<code>mv linux-amd64/helm /usr/local/bin/helm</code>)</li>
+
+</ul>
+
+</section>
+<section id="slide-2-2">
+<h3 id="2-2"><span class="section-number-3">2.2</span> Install Tiller on the cluster:</h3>
+<div class="org-src-container">
+
+<pre  class="src src-sh">  kubectl -n kube-system create serviceaccount tiller
+
+  kubectl create clusterrolebinding tiller <span style="color: #98be65;">\</span>
+    --clusterrole=cluster-admin <span style="color: #98be65;">\</span>
+    --serviceaccount=kube-system:tiller
+
+  helm init --service-account tiller
+</pre>
+</div>
+<p>
+See Troubleshooting/tiller for problems. 
+</p>
+</section>
+<section id="slide-2-3">
+<h3 id="2-3"><span class="section-number-3">2.3</span> Install gitlab</h3>
+<p class="forwardlink forwardlink">
+See <a href="#/slide-orgac0154e" class="forwardlink">3.3</a> 
+and <a href="#/slide-orge76dc67" class="forwardlink forwardlink">3.4</a> 
+</p>
+
+<p class="forwardlink">
+Then see <a href="#/slide-org75e2f6e" class="forwardlink">3.5</a> to edit the ingress service 
+</p>
+</section>
+</section>
+<section>
+<section id="slide-troubleshooting-1">
+<h2 id="troubleshooting-1"><span class="section-number-2">3</span> Troubleshooting</h2>
+</section>
+<section id="slide-3-1">
+<h3 id="3-1"><span class="section-number-3">3.1</span> Nodes not ready</h3>
+<p>
+<code>k describe nodes</code> <code>journalctl -u kubelet</code> on each node And in case of
+errors check if flannel pods are presents, or: <code>swapoff -a</code>
+<code>kubeadm reset</code>
+</p>
+</section>
+<section id="slide-3-2">
+<h3 id="3-2"><span class="section-number-3">3.2</span> Tiller on cluster does not respond</h3>
+<p>
+(<code>Error: forwarding ports: error upgrading connection: unable to upgrade connection: pod does not exist</code>):
+   install tiller locally <code>https://rimusz.net/tillerless-helm</code>
+</p>
+
+</section>
+<section id="slide-3-3">
+<h3 id="3-3"><span class="section-number-3">3.3</span> <a id="orgac0154e"></a></h3>
+<p>
+<code>Error: validation failed: unable to recognize "": no matches for kind "Deployment" in version "extensions/v1beta1"</code>
+Have to edit the apiVersion, so:
+</p>
+<ul>
+<li><code>helm fetch gitlab/gitlab</code></li>
+<li>change each <code>extensions/v1beta1</code> in deployment resources to
+<code>apps/v1</code></li>
+
+</ul>
+
+</section>
+<section id="slide-3-4">
+<h3 id="3-4"><span class="section-number-3">3.4</span> <a id="orge76dc67"></a>:</h3>
+<div class="org-src-container">
+
+<pre  class="src src-bash">helm upgrade --install gitlab ./gitlab
+   --timeout <span style="color: #da8548; font-weight: bold;">600</span> --set global.hosts.domain=local --set
+   global.hosts.externalIP=192.168.60.202 --set global.edition=ce --set
+   certmanager-issuer.email=me@example.com=
+</pre>
+</div>
+
+</section>
+<section id="slide-3-5">
+<h3 id="3-5"><span class="section-number-3">3.5</span> 1<a id="org75e2f6e"></a></h3>
+<p>
+<code>k get svc</code> we will see that the <code>external ip</code> of the ingress controller is in pending. 
+We have to edit the service: <code>k edit svc gitlab-nginx-ingress-controller</code> and
+add the same IP we used as <code>externalIP</code> before:
+</p>
+<div class="org-src-container">
+
+<pre  class="src src-sh">  externalIPs:
+    - 192.168.60.102
+</pre>
+</div>
+
+</section>
+<section id="slide-3-6">
+<h3 id="3-6"><span class="section-number-3">3.6</span> DONE <a id="orgde4ba6d"></a></h3>
+<p>
+This is a vagrant related problem:  <a href="https://github.com/kubernetes/kubernetes/issues/60835">github issue</a>.
+SCHEDULED: <span class="timestamp-wrapper"><span class="timestamp">&lt;2019-12-06 ven 09:00&gt;</span></span>
+</p>
+</section>
+<section id="slide-3-6-1">
+<h4 id="3-6-1"><span class="section-number-4">3.6.1</span> Tentativi</h4>
+<ul>
+<li>Paste <code>Environment="KUBELET_EXTRA_ARGS=--node-ip=VAGRANT_VM_EXTERNAL_IP_HERE"</code>
+inside <code>/etc/systemd/system/kubelet.service.d/10-kubeadm.conf</code> and restart the kubelet give an error (systemctl status kubelet)</li>
+
+</ul>
+</section>
+<section id="slide-3-6-2">
+<h4 id="3-6-2"><span class="section-number-4">3.6.2</span> Solution</h4>
+<p>
+Add <code>--node-ip</code> flag in <code>/var/lib/kubelet/kubeadm-flags.env</code> gives no error, but the main error persist.
+</p>
+
+</section>
+<section id="slide-3-7">
+<h3 id="3-7"><span class="section-number-3">3.7</span> Destroy all vagrant machines:</h3>
+<div class="org-src-container">
+
+<pre  class="src src-sh">  <span style="color: #51afef;">for</span> i<span style="color: #51afef;"> in</span> <span style="color: #51afef; font-weight: bold;">`vagrant global-status | </span><span style="color: #51afef; font-weight: bold;">grep</span><span style="color: #51afef; font-weight: bold;"> virtualbox | awk '{ print $1 }'`</span> ; <span style="color: #51afef;">do</span> vagrant destroy $<span style="color: #dcaeea;">i</span> ; <span style="color: #51afef;">done</span>
+</pre>
+</div>
+
+</section>
+<section id="slide-3-8">
+<h3 id="3-8"><span class="section-number-3">3.8</span> TODO Nginx 503</h3>
+</section>
+<section id="slide-3-8-1">
+<h4 id="3-8-1"><span class="section-number-4">3.8.1</span> See <a href="#/slide-3-9" class="forwardlink">3.9</a></h4>
+</section>
+<section id="slide-3-9">
+<h3 id="3-9"><span class="section-number-3">3.9</span> Pod communication</h3>
+<p>
+<code>Not route to host</code> when trying to ping/curl a pod on the same namespace
+</p>
+</section>
+<section id="slide-3-9-1">
+<h4 id="3-9-1"><span class="section-number-4">3.9.1</span> Test: pod on different nodes</h4>
+<p>
+<code>kubectl label nodes worker2 w=2</code> and same for worker1
+<code>kubectl run nginx --restart=Never --image=nginx ==dry-run -o yaml &gt; pod.yml</code>
+ping from one to another doesn&rsquo;t work. 
+</p>
+</section>
+<section id="slide-3-9-2">
+<h4 id="3-9-2"><span class="section-number-4">3.9.2</span> Tentativi</h4>
+<ul>
+<li>Disable firewall</li>
+<li>Check <code>ip route</code></li>
+<li>enable ipv4 forwarding</li>
+<li></li>
+
+</ul>
+
+</section>
+</section>
+<section>
+<section id="slide-4">
+<h2 id="4"><span class="section-number-2">4</span> Minikube</h2>
+<p>
+minikube start &#x2013;cpus 3 &#x2013;memory 8192
+</p>
+</section>
+</section>
+<section>
+<section id="slide-5">
+<h2 id="5"><span class="section-number-2">5</span> Helm install command</h2>
+<p>
+helm repo add gitlab <a href="https://charts.gitlab.io/">https://charts.gitlab.io/</a>   
+helm repo update                                                                           
+helm upgrade &#x2013;install gitlab ./gitlab \
+  &#x2013;timeout 600 \                       
+  -f minikube-values.yml &#x2013;set global.hosts.domain=\((minikube ip).nip.io \ 
+  --set global.hosts.externalIP=\)(minikube ip)
+</p>
+
+
+<p>
+helm repo add gitlab <a href="https://charts.gitlab.io/">https://charts.gitlab.io/</a>
+helm repo update
+helm upgrade &#x2013;install gitlab ./gitlab \
+  &#x2013;timeout 600 \
+  -f <a href="https://gitlab.com/gitlab-org/charts/gitlab/raw/master/examples/values-minikube-minimum.yaml">https://gitlab.com/gitlab-org/charts/gitlab/raw/master/examples/values-minikube-minimum.yaml</a>
+  &#x2013;set global.hosts.domain=\((minikube ip).nip.io \
+  --set global.hosts.externalIP=\)(minikube ip)
+</p>
+</section>
+</section>
+</div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@3/lib/js/head.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@3/js/reveal.js"></script>
+<script>
+// Full list of configuration options available here:
+// https://github.com/hakimel/reveal.js#configuration
+Reveal.initialize({
+
+controls: true,
+progress: true,
+history: false,
+center: true,
+slideNumber: 'c',
+rollingLinks: false,
+keyboard: true,
+mouseWheel: false,
+fragmentInURL: false,
+hashOneBasedIndex: false,
+pdfSeparateFragments: true,
+
+overview: true,
+
+theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+transition: Reveal.getQueryHash().transition || 'convex', // see README of reveal.js for options
+transitionSpeed: 'default',
+
+// Optional libraries used to extend reveal.js
+dependencies: [
+ { src: 'https://cdn.jsdelivr.net/npm/reveal.js@3/plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+ { src: 'https://cdn.jsdelivr.net/npm/reveal.js@3/plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+ { src: 'https://cdn.jsdelivr.net/npm/reveal.js@3/plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } },
+ { src: 'https://cdn.jsdelivr.net/npm/reveal.js@3/plugin/search/search.js', async: true, condition: function() { return !!document.body.classList; } },
+ { src: 'https://cdn.jsdelivr.net/npm/reveal.js@3/plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } }]
+
+});
+</script>
+</body>
+</html>

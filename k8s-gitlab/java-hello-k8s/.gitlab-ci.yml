@@ -1,0 +1,43 @@
+image: docker:latest
+services:
+  - docker:dind
+
+variables:
+  DOCKER_DRIVER: overlay
+  SPRING_PROFILES_ACTIVE: gitlab-ci
+
+stages:
+  - build
+  - package
+  - deploy
+
+maven-build:
+  image: maven:3-jdk-8
+  stage: build
+  script: "mvn package -B"
+  artifacts:
+    paths:
+      - target/*.jar
+
+docker-build:
+  stage: package
+  script:
+  - docker build -t registry.192.168.99.107.nip.io/root/spring-k8s .
+  - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN registry.192.168.99.107.nip.io
+  - docker push registry.192.168.99.107.nip.io/root/spring-k8s
+
+# deploy to staging:
+#   stage: deploy
+#   script: make deploy
+#   environment:
+#     name: staging
+#     url: https://staging.example.com/
+
+# k8s-deploy:
+#   image: registry.192.168.99.107.nip.io/
+#   stage: deploy
+#   script:
+#   - kubectl delete secret registry.gitlab.com
+#   - kubectl create secret docker-registry registry.gitlab.com --docker-server=https://registry.gitlab.com --docker-username=root --docker-password=$REGISTRY_PASSWD --docker-email=admin@example.com
+#   - kubectl apply -f deployment.yml
+

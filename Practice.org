@@ -280,4 +280,30 @@ helm upgrade --install gitlab ./gitlab \
   --set global.hosts.externalIP=$(minikube ip)
 
 
-* Gitlab from 0
+* Gitlab from 0 on minikube
+- minikube start --cpus 3 --memory 8192
+- helm init
+- minikube addons enable ingress
+** Install chart with helm
+helm repo add gitlab https://charts.gitlab.io/
+helm repo update
+helm upgrade --install gitlab gitlab-chart \
+  --timeout 600 \
+  -f https://gitlab.com/gitlab-org/charts/gitlab/raw/master/examples/values-minikube.yaml
+--set global.hosts.domain=$(minikube ip).nip.io \
+--set global.hosts.externalIP=$(minikube ip)
+** Delete chart
+helm delete --purge gitlab
+** Login
+- Go to https://gitlab.192.168.99.101.nip.io
+- Access with: kubectl get secret gitlab-gitlab-initial-root-password -ojsonpath='{.data.password}' | base64 --decode ; echo
+
+** Kubernetes integration
+- API: kubectl cluster-info | grep 'Kubernetes master' | awk '/http/ {print $NF}'
+- kubectl get secret default-token-jdqvj -o jsonpath="{['data']['ca\.crt']}" | base64 --decode
+- ka gitlab-admin-service-account.yml
+-
+** Add Runner
+- Admin Area>Runner
+- Copy gitlab credentials
+-

@@ -278,3 +278,6 @@ helm upgrade --install gitlab ./gitlab \
   -f https://gitlab.com/gitlab-org/charts/gitlab/raw/master/examples/values-minikube-minimum.yaml
   --set global.hosts.domain=$(minikube ip).nip.io \
   --set global.hosts.externalIP=$(minikube ip)
+
+
+* Gitlab from 0

@@ -1,5 +1,3 @@
-#+TITLE: dio
-
 #+TITLE: CI/CD pipeline on container platform
 #+AUTHOR: Francesco Gionghi
 #+EMAIL: francesco.gionghi@gmail.com
@@ -25,21 +23,31 @@
 ** Concluding remarks
 
 * Thesis
+To understand what problem this project aim to solve a good place to start is
+the title and explain it: what is a pipeline and which types of them
+exists, what is container and how to manage them in large scale.
+I dedicated a big part of theory on linux container and how the kernel offers these
+functionality because is where “the magic” start.
 ** DevOps Introduction
-*** Definition
 DevOps is a set of practices that combines software development (Dev) and
 information-technology operations (Ops) which aims to shorten the systems
 development life cycle and provide continuous delivery with high software
 quality.
-**** Understand the sentence:
-- *Software development* is the process of conceiving, specifying, designing, programming, documenting, testing, and bug fixing involved in creating and maintaining applications, frameworks, or other software components. Software development is a process of writing and maintaining the source code, but in a broader sense, it includes all that is involved between the conception of the desired software through to the final manifestation of the software, sometimes in a planned and structured process.
-- *IT operation* tasks fall into three areas: ~Computer Operations & Help Desk; Network Infrastructure; and Server and Device Management~.
- In brief:
+**** What we mean with dev and ops
+- *Software development* is the process of conceiving, specifying, designing,
+  programming, documenting, testing, and bug fixing involved in creating and
+  maintaining applications, frameworks, or other software components. Software
+  development is a process of writing and maintaining the source code, but in a
+  broader sense, it includes all that is involved between the conception of the
+  desired software through to the final manifestation of the software, sometimes
+  in a planned and structured process.
+- *IT operation* tasks fall into three areas: ~Computer Operations & Help Desk;
+  Network Infrastructure; and Server and Device Management~. In brief:
  - Network Infrastructure refers to all the hardware on server side such as
   like router, hubs, firewalls, DNS servers, file servers and load balancing together with
   managing and configuring all internal and external communication lines
-  Port management, Security, Monitoring network and resources (storage, services such as email or file servers, application)
-  are consequents task.
+  Port management, Security, Monitoring network and resources (storage, services
+   such as email or file servers, application) are consequents task.
 
  - Server & Device Management includes set up configuration, maintenance,
   upgrades, patching and repair servers. Connect with that there is network and individual storage
@@ -50,10 +58,8 @@ quality.
   desktop, laptop devices and mobile phones.
   It goes further including the management of the physical locations where the
   equipment resides such as floor space, electricity, cooling, battery
-  backups.
-  It also includes help desk management, creation and authorization of user
+  backups. It also includes help desk management, creation and authorization of user
   profiles on all systems, backups management, disaster recovery.
-
 
 *** Agile and Lean: how are they related with Devops?
 DevOps has strong affinities with Agile and Lean approaches. The old view of
@@ -69,19 +75,21 @@ are a fundamental part of the value proposition to the client as well, and so
 the product team needs to include those concerns as a top level item.” From this
 perspective, DevOps is simply extending Agile principles beyond the boundaries
 of “the code” to the entire delivered service.
-*** DevOps core concept
+*** TODO DevOps core concept
 - Infrastructure Automation – create your systems, OS configs, and app deployments as code.
 - Continuous Delivery – build, test, deploy your apps in a fast and automated manner.
 - Site Reliability Engineering – operate your systems; monitoring and orchestration, sure, but also designing for operability in the first place.
 ** CI/CD introduction
-- integration: integrate often (every push) thank to *automated tests*
+
+#+BEGIN_SRC
+- integration: integrate often thank to *automated tests*
 - delivery: build del codice e push su un registry, deploy manuale
 - deployment: deploy automatico del artifact creato prima
+#+END_SRC
 [[./images/ci-cd-flow-mobile_0.png]]
 *** Continuous integration
-
 Developers practicing continuous integration merge their changes back to the
-main branch as often as possible. The developer's changes are validated by
+main branch (manually) as often as possible. The developer's changes are validated by
 creating a build and running automated tests against the build. By doing so, you
 avoid the integration hell that usually happens when people wait for release day
 to merge their changes into the release branch.
@@ -139,11 +147,11 @@ There are a few new Linux kernel features, *namespaces* and *cgroups*, that let
 you isolate processes from each other. When you use those features, you call it
 *containers*.
 
-In particular a container is a runtime process executed within a namespace which is resource
-managed by cgroups and various other LSMs and security features to ensure
-complete process isolation during runtime. These processes in the container are
-automated amongst other things with container runtimes like Docker which
-simplifies the creation and management pahses.
+In particular a container is a runtime process executed within a namespace which
+is resource managed by cgroups and various other LSMs and security features to
+ensure complete process isolation during runtime.
+These processes in the container are automated amongst other things with container runtimes like Docker
+which simplifies the creation and management pahses.
 
 ***** Why
 We used to create monolith application: one huge block of code on one server
@@ -156,50 +164,58 @@ are more components and more diffrent hardware. But with containers we doesn't
 care what is the underlying system (on-prem, cloud, VM, laptop) or what's inside
 (DB, frontend, backend, static websiste)
 
-
-
-Containers for the kernel are just cgroups and namespaces.
 **** Deep dive
 To actually understand why container are possible, we need to go deeper in
-kernel mechanisms:
+kernel mechanisms as it is the only layer of abstraction:
 - It provides an API to application via system calls
-- It is the only layer of abstraction
-- Implements:
-  - access control based on process identity and file permission
+- Implements access control based on process identity and file permission
 - Provide modules (or device driver) that manage the hardware (CPU, memoery,
   Disk, Network).
 ***** User space and kernel space
 [[./images/user-space-vs-kernel-space-simple-user-space.png]]
 
-Both refers to part of the RAM memory. And in its definition we could find some
-clues: RAM is used to hold portion of *OS*, application, data that are currently
-being used by the CPU or are likely to be used. Here with OS we mean the kernel.
+Both Kernel and User space refers to part of the RAM memory. And in its definition we could find some
+clues:
 
+#+BEGIN_SRC
+RAM is used to hold portion of *OS*, application, data that are currently
+being used by the CPU or are likely to be used.
+#+END_SRC
 
-The main thing that occurs at boot is the copying the operating system from a storage
-device, into main memory so that it can be directly accessed by the central processing unit (CPU).
+Here with OS we mean the kernel.
 
+In fact the main thing that occurs at boot is the copying the operating system
+from a storage device, into main memory so that it can be directly accessed by
+the central processing unit (CPU).
 
-*User space*: portion of RAM where user processes run. User process are
-instances of all programs other than the kernel.
+The kernel performs its tasks, such as running processes, managing hardware
+devices such as the hard disk, and handling interrupts, in this protected kernel
+space.
+In contrast, application programs like browsers, word processors, or
+audio or video players use a separate area of memory, user space.
+This separation prevents user data and kernel data from interfering with each other
+and causing instability and slowness, as well as preventing malfunctioning
+application programs from crashing the entire operating system.
 
-*Kernel space*: where kernel run. It is not a process but rather a controller of process
-
-It provides:
-  - memory/management
-  - file system
-  - tcp/ip network
-
-These services are requested by other parts of the operating system or by
+Kernel services are requested by other parts of the operating system or by
 application programs through a specified set of program interfaces referred to
-as system calls.
+as *system calls*.
 
-*Rings*: The two memory spaces are separated by a finely tuned permission layer
- called Rings. These Rings define how privileged or unprivileged the
+#+BEGIN_SRC
+The system call is the fundamental interface between an application and the Linux kernel.
+It rapresent a request in a Unix-like operating system made via a software
+interrupt by an active process for a service performed by the kernel, such as input/output.
+#+END_SRC
+
+The two memory spaces are separated by a finely tuned permission layer
+ called *Rings*. These Rings define how privileged or unprivileged the
  requirements of an application need to be before certain actions can be
  granted.
 
+An interaction scheme between these spaces:
+#+BEGIN_SRC
  User Programs -> Library/Interpreter -> System Calls -> Kernel space
+#+END_SRC
 
 1. Application make requests to a kernel level function, so
 2. An interrupt is sent (tells the CPU to stop whetever is doing)
@@ -207,24 +223,20 @@ as system calls.
 4. application waits a respons while the required functionality in the kernel
    space is executed through the appropriate interrupt handler.
 
-***** Syscall
-From MAN page:
-The  system  call is the fundamental interface between an application and the Linux kernel.
-
-Linfo.org
-A system call is a request in a Unix-like operating system made via a software
-interrupt by an active process for a service performed by the kernel, such as input/output
-
-SysCall is an API  to the kernel allowing functional access to kernel level
-functionality. In Linux programming, these APIs are exposed using C libraries
 ***** Capabilities
 Capabilities further enhance syscalls by grouping related ones into defined
 privileges that can be granted or denied at once.
 This prevents even root level applications from exploiting restricted kernel
 spaces with reserved permissions.
 
+This feature was introducted since kernel 2.2 to be able to distinguish between
+other than the usal two categories: priviledge (who bypass all kernel permission
+cell) and unpriviledge. Capabilities are distinct units that rappresent
+superuser privileges.
+
+***** Tecnical deep dive into cgroups and namespaces
 ****** Cgroups
-*Cgroups*: they allow processes to be organized into hierarchical
+They allow processes to be organized into hierarchical
 groups whose usage of various types of resources can then be limited
 and monitored.  The kernel's cgroup interface is provided through a
 pseudo-filesystem called cgroupfs.  Grouping is implemented in the
@@ -232,12 +244,15 @@ core cgroup kernel code, while resource tracking and limits are
 implemented in a set of per-resource-type subsystems (memory, CPU,
 and so on).
 
-TLDRL: metering and limiting the resources used by processes. Each subsystem
+TLDR: cgroups provides metering and limiting the resources used by processes. Each subsystem
 has it's own hierarchy (tree) and each process belong to one node in each
 hierarchy.
 
 *Cgroup in file system*
-We will run a simple app in a specific cgrop memory:
+
+To better uderstand how linux provide these festures i will run a simple app in
+a specific cgrop memory. The app will be:
+
 #+BEGIN_SRC bash
 #!/bin/sh
 
@@ -246,132 +261,141 @@ while [ 1 ]; do
         sleep 60
 done
 #+END_SRC
-1. Create a cgroup name foo under the memory subsystem: ~sudo mkdir /sys/fs/cgroup/memory/foo~
-2. Now it will inherit access to the entire system memory, to limit it to 50MB: ~echo 50000000 | sudo tee
+
+1. Create a cgroup name *foo* under the memory subsystem with ~sudo mkdir /sys/fs/cgroup/memory/foo~
+2. Now it will inherit access to the entire system memory, to limit it to 50MB execute ~echo 50000000 | sudo tee
  ↪/sys/fs/cgroup/memory/foo/memory.limit_in_bytes~
-3. ~sudo cat memory.limit_in_bytes~: ~50003968~ because it is multiple of the
+3. ~sudo cat memory.limit_in_bytes~  to this the just setted limit.
+   The size will be ~50003968~ because it is setted to a multiple of the
    kernel's page size.
 4. Launch the application: ~sh test.sh &~
 5. Using its printed  PID move the application to cgroup ~foo~ under the
-   ~memory~ controller: ~echo 2845 > /sys/fs/cgroup/memory/foo/cgroup.procs~
+  ~memory~ controller with ~echo 2845 > /sys/fs/cgroup/memory/foo/cgroup.procs~
 6. Verify where it is running:
    #+BEGIN_SRC bash
 $ ps -o cgroup 2845
-CGROUP
-8:memory:/foo,1:name=systemd:/user.slice/user-0.slice/
-↪session-4.scope
+CGROUP 8:memory:/foo,1:name=systemd:/user.slice/user-0.slice/session-4.scope
    #+END_SRC
-7. See usage: ~cat /sys/fs/cgroup/memory/foo/memory.usage_in_bytes
-253952~
+7. See usage with ~cat /sys/fs/cgroup/memory/foo/memory.usage_in_bytes~
+  
 If we give the minimum size of kernel page size, 4096 bytes (4KB) (if we give 500byes it
 will however give 4kb), Out-of-memoery killer (oom-killer) will kill the
 process.
 
-******* Memory cgroups
-******** accounting:
-  - [fn:1]keep track of every single memory page (4kb) used by groups (mmap mapping types):
-    - file: what correspond to a file on the disk. So you need more memory, the pages about that file can be removed.
-    - anonymous: does not correspond to something on disk.
+- *Memory cgroup*:
+Regarding *accounting* we can count (keep track) of how much memory (every single memory page
+(4kb)) is used by a groups of processes.
 
-These two types will go by default to ~active~ memory and where we need extra
+#+BEGIN_SRC
+
+An advanced topic is which type of memoery page exists and how them works. In
+brief there are:
+  - file: what correspond to a file on the disk. So you need more memory, the
+    pages about that file can be removed.
+  - anonymous: does not correspond to something on disk.
+These two types will go by default to ~active~ memory and where a process need extra
 memory they will arbitrary go to ~inactive~. Each time i touch a page it will go
 back to active.
 
-******** limits:
-  - hard: if process goes above this limits, it will be killed.
+#+END_SRC
+
+Taking about limits there two type of them:
+  - hard: if process goes above this limits, it will kill a process in that
+    container. Reason why it's better to put (usually) one service per
+    container.
   - soft: when we are close to be out of memory, it will take pages from process who doesn't need them.
 
-Avoiding Out of memory killer with oom-notifier
+Avoiding Out of memory killer (killing random process when a process use all
+ memory) with oom-notifier that freeze all process in that group, notify the
+ user space and be able to kill processes, raise limits or unfreeze the group.
 
-******* CPU cgroup:
-  - it keeps track of user/system CPU time, and user per CPU
-  - allow to set weights
-  - (?) can't set CPU limits:
-    - it doesn't make sense neither in percentage (because if we limit a process
-      to use 10% of CPU, the system will slow down the CPU), CPU cycle (some cycle (basic operation).
+- *CPU cgroup*:
+  - it keeps track of user/system CPU time, and usage per CPU
+  - allow to set weights (priority)
+  - can't set CPU limits beacuse it doesn't make sense neither in:
+    - percentage: if we limit a process to use 10% of CPU, it throttles
+      to a lower clock speed.
+    - count the number of cycle: some instruction are fast and other are slow
 
-******** Cpuset cgroup
-- It permit to pin a set of process to one cpu: dedicate cpus to specific task.
-- Useful for NUMA systems where a CPU can access faster its own local memory.
+- *Cpuset cgroup*:
+  - It permit to pin a set of process to one cpu: dedicate cpus to specific task
+  - Useful for NUMA systems where a CPU can access faster its own local memory.
 
-******* Block I/O: min 18
-Keep track of read/writes and sync/async for each group Network I/O:
-- net_cls: for traffic class.
-- net_prio: for traffic priority
-They attach a tag on traffic, then still have to use tc (traffic control).
-- network
+- *Block I/O*: sets limits on input/output access to and from block devices such
+  as physical drives (disk, solid state, or USB).
 
-******* Devices cgroup
+- *Devices cgroup*:
 Which container can read/write on which device. Interesting node:
-- /dev/net/tun: network interface manipulation. For example have a VPN client inside the container without polluting the network stack of host
-- /dev/fuse: to have custom filesystem in container
-- /dev/kvm: VMs in containers
-- dev/dri: expose GPU to use GPU intensive application inside containers
+  - /dev/net/tun: network interface manipulation. For example have a VPN client
+    inside the container without polluting the network stack of host
+  - /dev/fuse: to have custom filesystem in container
+  - /dev/kvm: VMs in containers
+  - dev/dri: expose GPU to use GPU intensive application inside containers
 
-******* Freezer cgroup
-It do a SIGSTOP to all container without the process know it. It's useful when
-we don't what the process to know that we are SIGSTOPPing it (ptrace(),
-debugging). Used for cluster batch scheduling and process migration (freeze,
-move, unfreeze).
+- *Freezer cgroup*:
+It suspends or resumes tasks in a cgroup doing a SIGSTOP to all container
+without the process know it. It's useful when we don't what the process to know
+that we are SIGSTOPPing it (ptrace(), debugging). Used for cluster batch
+scheduling and process migration (freeze, move, unfreeze).
 
-******* Subtleties
-- SubtletiesPID 1 is placed at the root of each hierarchy
-- When a process is created, it is placed in the same groupsas its parentGroups are materialized by one (or multiple) pseudo-fs (typically mounted in /sys/fs/cgroup)
-- Groups are created by mkdir in the pseudo-fs
-- To move a process:
-  echo $PID > /sys/fs/cgroup/.../tasks
-- The cgroup wars: systemd vs cgmanager vs ...
+- *Subtleties*:
+  - SubtletiesPID 1 is placed at the root of each hierarchy
+  - When a process is created, it is placed in the same groupsas its
+    parentGroups are materialized by one (or multiple) pseudo-fs (typically
+    mounted in /sys/fs/cgroup)
+  - Groups are created by mkdir in the pseudo-fs
+  - To move a process:
+        echo $PID > /sys/fs/cgroup/.../tasks
+  - The cgroup wars: systemd vs cgmanager vs ...
 
 ****** Namespaces
-Limiting what a space can view. Each process is associated with a namespace and
+Limiting what a process can view. Each process is associated with a namespace and
 can only see or use the resources associated with that namespace. There are
 multiple namespaces: pid, net, mnt, uts, ipc, user and each process is in one
 namespace of each kind.
 ******* Type of namespaces
-******** Pid
-- Process within a PID namespace only see processes in the same PID namespace
-- Each PID namespace has its own numbering starting at 1
-- If PID 1 stop, whole namespace is killed.
-- Those namespaces can be nested
-- A process ens up having multiple PIDs: one per namespace in which its nested.
-******** Network
-- Process within a given network namespace get their own private network stack: interfaces, routing tables, iptables, socket.
-- It's possible to move a netowrk interface across netns: ~ip link set dev eth0 netns PID~
-- Usually on the host there are vethXXX, each one attached to eth0 inside network namespace of a container. All vethXXX are bridged together with docker0.
-******** mnt
-- Mount something only in one container.
-******** IPC
-Allow process to have their own:
-- IPC semaphores
-- IPC message queues
-- IPC shared memory
++ Pid
+  - Process within a PID namespace only see processes in the same PID namespace
+  - Each PID namespace has its own numbering starting at 1
+  - If PID 1 stop, whole namespace is killed.
+  - Those namespaces can be nested
+  - A process ens up having multiple PIDs: one per namespace in which its nested.
 
-******** User
-Contains a mapping table converting user IDs from the container's point of view
-to the system's point of view. This allows, for example, the root user to have
-user id 0 in the container but is actually treated as user id 1,400,000 by the
-system for ownership checks. A similar table is used for group id mappings and
-ownership checks.
++ Network
+  - Process within a given network namespace get their own private network stack: interfaces, routing tables, iptables, socket.
+  - It's possible to move a netowrk interface across netns: ~ip link set dev eth0 netns PID~
+  - Usually on the host there are vethXXX, each one attached to eth0 inside network namespace of a container. All vethXXX are bridged together with docker0.
+
++ mnt
+  - Mount something only in one container.
++ PC
+    Allow process to have their own:
+  - IPC semaphores
+  - IPC message queues
+  - IPC shared memory
+
++ User
+    Contains a mapping table converting user IDs from the container's point of view
+    to the system's point of view. This allows, for example, the root user to have
+    user id 0 in the container but is actually treated as user id 1,400,000 by the
+    system for ownership checks. A similar table is used for group id mappings and
+    ownership checks.
 
 ******* Namespace manipulation
 - Creation: when create a process with an extra flag
 - View namespace of a process: ls -l /proc/$$/ns
 - With bind mount i can prevent the deletion of a namespace
 
-******* Copy-on-write
-Namespaces and cgroups aren't enough: it permit to create container instantly.
 
-****** Other stuff
-******* Ortogonality:
-- each component can be used indipendently
-- Capabilities: Linux can divide the privileges traditionally associated with superuser into distinct units, which can be indipendently enabled.
-- SELinux/AppArmor
+
 *** Orchestration
 
 ** My Architecture
 *** Diagram arichitecture
 *diagram architecture*
-- The VirtualBox HOST ONLY network will be the network used to access the Kubernetes master and nodes from outside the network, it can be considered the Kubernetes public network for our development environment. 192.168.60.0/24
+- The VirtualBox HOST ONLY network will be the network used to access the
+  Kubernetes master and nodes from outside the network, it can be considered the
+  Kubernetes public network for my development environment: 192.168.60.0/24
 Virtualbox create the route: 192.168.50.0 0.0.0.0 255.255.255.0 U 0 0 0 vboxnet0
 
 Applications published using a Kubernetes NodePort will be available at all the
@@ -379,19 +403,22 @@ IPs assigned to the Kubernetes servers. Example, for an application published at
 nodePort 30000 the following URLs will allow access from outside the Kubernetes
 cluster: http://192.168.60.11:30000/
 
-- The NAT network interface, with the same IP (10.0.2.15) for all servers, is assigned to the first interface or each VirtualBox machine, it is used to access the external world (LAN & Internet) from inside the Kubernetes cluster.
+- The NAT network interface, with the same IP (10.0.2.15) for all servers, is
+  assigned to the first interface of each VirtualBox machine, it is used to
+  access the external world (LAN & Internet) from inside the Kubernetes cluster.
 For example, it is used during the Kubernetes cluster configuration to download
 the needed packages. Since it is a NAT interface it doesn’t allow inbound
 connections by default.
 
-- The internal connections between Kubernetes PODs use a tunnel network with IPs on the CIDR range 10.244.0.0 (as configured by our Ansible playbook)
-Kubernetes will assign IPs from the POD Network to each POD that it creates. POD
+- The internal connections between Kubernetes PODs use a tunnel network with IPs
+  on the CIDR range 10.244.0.0.
+Kubernetes will assign IPs from the this network to each POD that it creates. POD
 IPs are not accessible from outside the Kubernetes cluster and will change when
 PODs are destroyed and created.
-- The Kubernetes Cluster Network is a private IP range used inside the cluster to give each Kubernetes service a dedicated IP.
-Cluster-IPs can’t be accessed from outside the Kubernetes cluster, therefore, a
-NodePort is created (or a LoadBalancer in a Cloud provider) to publish an app.
-NodePort uses the Kubernetes external IPs.
+
+- The Kubernetes Cluster Network is a private IP range used inside the cluster
+  to give each Kubernetes service a dedicated IP.
+  Cluster-IPs can’t be accessed from outside the Kubernetes cluster, but are used
 *** Vagrant
 **** Why vagrant?
 Vagrant is a tool that will allow us to create a virtual environment easily and
@@ -606,7 +633,6 @@ root namespace.
 
 CNI automatically create routes to tell node1 on which node are a specific pod's
 CIDR.
-
 
 * Footnotes
 

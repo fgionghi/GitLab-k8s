@@ -299,11 +299,18 @@ helm delete --purge gitlab
 - Access with: kubectl get secret gitlab-gitlab-initial-root-password -ojsonpath='{.data.password}' | base64 --decode ; echo
 
 ** Kubernetes integration
+- Admin area>Setting>Network> check Allow requests to the local network from web hooks and services
 - API: kubectl cluster-info | grep 'Kubernetes master' | awk '/http/ {print $NF}'
 - kubectl get secret default-token-jdqvj -o jsonpath="{['data']['ca\.crt']}" | base64 --decode
 - ka gitlab-admin-service-account.yml
--
+- copy token from: kubectl -n kube-system describe secret $(kubectl -n
+  kube-system get secret | grep gitlab-admin | awk '{print $1}')
+
 ** Add Runner
 - Admin Area>Runner
 - Copy gitlab credentials
--
+- Download cert from firefox
+- create secret: kubectl
+  --namespace <NAMESPACE>
+  create secret generic <SECRET_NAME>
+  --from-file=<CERTFICATE_FILENAME>
